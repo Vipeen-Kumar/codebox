@@ -1,0 +1,150 @@
+import React, { useContext, useState } from 'react'
+import { Header, CloseButton } from '../Modal'
+import { IoCloseSharp } from 'react-icons/io5'
+import { ModalContext } from '../../context/ModalContext'
+import { PlaygroundContext } from '../../context/PlaygroundContext'
+import Select from 'react-select'
+import styled from 'styled-components'
+
+/* =======================
+   STYLED COMPONENTS
+======================= */
+
+const InputWithSelect = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 0.5fr;
+  gap: 1rem;
+  margin-top: 1.2rem;
+  align-items: center;
+  color: #eaeaea;
+
+  input {
+    height: 2.4rem;
+    padding: 0 0.6rem;
+    background: #1e1e1e;
+    border: 1px solid #333;
+    color: #eaeaea;
+    border-radius: 6px;
+    outline: none;
+
+    &:focus {
+      border-color: #f59e0b;
+    }
+  }
+
+  button {
+    grid-column: span 2;
+    height: 2.6rem;
+    margin-top: 0.8rem;
+    background: #f59e0b;
+    color: #1e1e1e;
+    border: none;
+    border-radius: 32px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+      background: #e08c00;
+      box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.35);
+    }
+
+    &:active {
+      transform: scale(0.96);
+    }
+  }
+
+  & > div {
+    width: 100%;
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+
+    button {
+      grid-column: span 1;
+    }
+  }
+`
+
+/* =======================
+   COMPONENT
+======================= */
+
+const NewPlayground = () => {
+  const { isOpenModal, closeModal } = useContext(ModalContext)
+  const { addPlayground } = useContext(PlaygroundContext)
+
+  const languageOptions = [
+    { value: 'cpp', label: 'cpp' },
+    { value: 'java', label: 'java' },
+    { value: 'javascript', label: 'javascript' },
+    { value: 'python', label: 'python' },
+  ]
+
+  const { folderId } = isOpenModal.identifiers
+  const [cardTitle, setCardTitle] = useState('')
+  const [language, setLanguage] = useState(languageOptions[0])
+
+  return (
+    <>
+      <Header>
+        <h2 style={{ color: '#eaeaea' }}>Create New Playground</h2>
+        <CloseButton onClick={closeModal}>
+          <IoCloseSharp />
+        </CloseButton>
+      </Header>
+
+      <InputWithSelect>
+        <input
+          type="text"
+          placeholder="Enter playground name"
+          onChange={(e) => setCardTitle(e.target.value)}
+        />
+
+        <Select
+          options={languageOptions}
+          value={language}
+          onChange={setLanguage}
+          theme={(theme) => ({
+            ...theme,
+            colors: {
+              ...theme.colors,
+              neutral0: '#252526',
+              neutral80: '#eaeaea',
+              primary: '#f59e0b',
+              primary25: '#333333',
+            },
+          })}
+          styles={{
+            control: (base) => ({
+              ...base,
+              backgroundColor: '#1e1e1e',
+              borderColor: '#333',
+              minHeight: '2.4rem',
+            }),
+            menu: (base) => ({
+              ...base,
+              backgroundColor: '#252526',
+            }),
+            singleValue: (base) => ({
+              ...base,
+              color: '#eaeaea',
+            }),
+          }}
+        />
+
+        <button
+          onClick={() => {
+            addPlayground(folderId, cardTitle, language.label)
+            closeModal()
+          }}
+        >
+          Create Playground
+        </button>
+      </InputWithSelect>
+    </>
+  )
+}
+
+export default NewPlayground
