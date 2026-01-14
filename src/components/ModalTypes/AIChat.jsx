@@ -1,8 +1,9 @@
 import React, { useState, useContext, useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import { Header, CloseButton } from '../Modal';
-import { IoCloseSharp, IoSend, IoCodeSlashOutline } from 'react-icons/io5';
+import { IoCloseSharp, IoSend, IoCodeSlashOutline, IoTrashOutline } from 'react-icons/io5';
 import { ModalContext } from '../../context/ModalContext';
+import { PlaygroundContext } from '../../context/PlaygroundContext';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -150,17 +151,48 @@ const LoadingDots = styled.div`
   }
 `;
 
-const AIChat = () => {
-  const { closeModal, isOpenModal } = useContext(ModalContext);
-  const codeContext = isOpenModal.identifiers?.code;
-  const languageContext = isOpenModal.identifiers?.language;
+const ClearButton = styled.button`
+  background: transparent;
+  border: 1px solid #444;
+  color: #aaa;
+  padding: 0.4rem 0.8rem;
+  border-radius: 16px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.2s;
 
-  const [messages, setMessages] = useState([
-    { role: 'model', text: 'Hello! I am your AI coding assistant. How can I help you today?' }
-  ]);
+  &:hover {
+    background: rgba(255, 0, 0, 0.1);
+    border-color: #ff4d4d;
+    color: #ff4d4d;
+  }
+`;
+
+const ActionsContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+`;
+
+const AIChat = () => {
+  const { isOpenModal, closeModal } = useContext(ModalContext);
+  const { chatHistories, updateChatHistory, folders } = useContext(PlaygroundContext);
+  const { code: codeContext, language: languageContext, playgroundId, folderId } = isOpenModal.identifiers;
+
+  const playgroundTitle = folders[folderId]?.playgrounds[playgroundId]?.title || 'Unknown Playground';
+
+  const initialMessages = chatHistories[playgroundId] || [
+    { role: 'model', text: `Hello! I am your AI assistant for the playground "${playgroundTitle}". I have access to your code and can help you with debugging, explanations, or improvements. How can I help you today?` }
+  ];
+
+  const [messages, setMessages] = useState(initialMessages);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [includeCode, setIncludeCode] = useState(!!codeContext);
+  const [includeCode, setIncludeCode] = useState(true);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -171,52 +203,51 @@ const AIChat = () => {
     scrollToBottom();
   }, [messages]);
 
+  useEffect(() => {
+    updateChatHistory(playgroundId, messages);
+  }, [messages, playgroundId]);
+
   const handleSend = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || loading) return;
 
-    let prompt = input;
-    let displayMessage = input;
-
-    // If includeCode is true and it's the first user message, or user wants to include code
-    // We'll append the code context to the actual prompt sent to AI
-    if (includeCode && codeContext) {
-      prompt = `Context: The following is ${languageContext} code from the editor:\n\n\`\`\`${languageContext}\n${codeContext}\n\`\`\`\n\nUser Question: ${input}`;
-      // We don't want to show the full code in the chat bubble every time, 
-      // but we should indicate that code was included.
-      displayMessage = `[Code Attached] ${input}`;
-    }
-
-    const userMessage = { role: 'user', text: displayMessage };
-    setMessages(prev => [...prev, userMessage]);
+    const userMessage = { role: 'user', text: input };
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
     setInput('');
     setLoading(true);
 
     try {
-        // Format history for backend
-        // We need to be careful with history: if we included code in the prompt, 
-        // the history should reflect what the AI actually received or at least maintain consistency.
-        // For simplicity, we'll send the augmented prompt but keep the display message in our local state history.
-        
-        const history = messages.map(msg => ({
-            role: msg.role === 'user' ? 'user' : 'model',
-            parts: [{ text: msg.text }]
-        }));
+      const systemContext = `Current coding context:
+Playground Title: ${playgroundTitle}
+Language: ${languageContext}
+Current Code:
+\`\`\`${languageContext}
+${codeContext}
+\`\`\`
+Please use this context to answer my questions accurately. Mention file/playground names when relevant.`;
 
-        const response = await axios.post('http://localhost:5000/api/ai/chat', {
-            prompt: prompt, // Send the augmented prompt
-            history: history
-        });
+      const apiHistory = newMessages.map(msg => ({
+        role: msg.role === 'user' ? 'user' : 'model',
+        parts: [{ text: msg.text }]
+      }));
 
-        const aiMessage = { role: 'model', text: response.data.text };
-        setMessages(prev => [...prev, aiMessage]);
-        
-        // After sending once with code, maybe disable auto-including unless toggled?
-        // Or keep it for the whole session? Usually, keeping it is better for context.
+      // Prepend context to the first user message of the session if includeCode is true
+      if (includeCode && codeContext && newMessages.filter(m => m.role === 'user').length === 1) {
+        apiHistory[apiHistory.length - 1].parts[0].text = `${systemContext}\n\nUser Question: ${input}`;
+      }
+
+      const response = await axios.post('http://localhost:5000/api/ai/chat', {
+        prompt: input,
+        history: apiHistory.slice(0, -1)
+      });
+
+      const aiMessage = { role: 'model', text: response.data.text };
+      setMessages(prev => [...prev, aiMessage]);
     } catch (error) {
-        console.error('AI Chat Error:', error);
-        setMessages(prev => [...prev, { role: 'model', text: 'Sorry, I encountered an error. Please try again.' }]);
+      console.error('AI Chat Error:', error);
+      setMessages(prev => [...prev, { role: 'model', text: 'Sorry, I encountered an error. Please try again.' }]);
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -278,15 +309,29 @@ const AIChat = () => {
           <div ref={messagesEndRef} />
         </MessagesArea>
 
-        {codeContext && (
-          <CodeContextBadge 
-            active={includeCode} 
-            onClick={() => setIncludeCode(!includeCode)}
-          >
-            <IoCodeSlashOutline />
-            <span>{includeCode ? 'Code Attached' : 'Attach Current Code'}</span>
-          </CodeContextBadge>
-        )}
+        <ActionsContainer>
+          {codeContext && (
+            <CodeContextBadge 
+              active={includeCode} 
+              onClick={() => setIncludeCode(!includeCode)}
+            >
+              <IoCodeSlashOutline />
+              <span>{includeCode ? 'Code Attached' : 'Attach Current Code'}</span>
+            </CodeContextBadge>
+          )}
+          <ClearButton onClick={() => {
+            if (window.confirm('Clear conversation history for this playground?')) {
+              const resetMessages = [
+                { role: 'model', text: `Hello! I am your AI assistant for the playground "${playgroundTitle}". I have access to your code and can help you with debugging, explanations, or improvements. How can I help you today?` }
+              ];
+              setMessages(resetMessages);
+              updateChatHistory(playgroundId, resetMessages);
+            }
+          }}>
+            <IoTrashOutline />
+            Clear Chat
+          </ClearButton>
+        </ActionsContainer>
 
         <InputArea>
           <ChatInput 

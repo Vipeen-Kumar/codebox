@@ -128,10 +128,12 @@ const Playground = () => {
 
   return (
     <div>
-      <Navbar 
-        isFullScreen={isFullScreen} 
-        currentCode={currentCode} 
-        currentLanguage={currentLanguage} 
+      <Navbar
+        isFullScreen={isFullScreen}
+        currentCode={currentCode}
+        currentLanguage={currentLanguage}
+        playgroundId={playgroundId}
+        folderId={folderId}
       />
 
       <MainContainer isFullScreen={isFullScreen}>

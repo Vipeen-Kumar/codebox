@@ -47,7 +47,7 @@ const AIIconContainer = styled.div`
   }
 `;
 
-const Navbar = ({ isFullScreen, currentCode, currentLanguage }) => {
+const Navbar = ({ isFullScreen, currentCode, currentLanguage, playgroundId, folderId }) => {
   const navigate = useNavigate();
   const { openModal } = useContext(ModalContext);
 
@@ -77,7 +77,9 @@ const Navbar = ({ isFullScreen, currentCode, currentLanguage }) => {
         modalType: 7,
         identifiers: {
           code: currentCode,
-          language: currentLanguage
+          language: currentLanguage,
+          playgroundId: playgroundId,
+          folderId: folderId
         }
       })}>
         <img src={aiIcon} alt="AI Assistant" />

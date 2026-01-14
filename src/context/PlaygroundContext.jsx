@@ -65,9 +65,25 @@ const PlaygroundProvider = ({ children }) => {
         return JSON.parse(localData);
     })
 
+    const [chatHistories, setChatHistories] = useState(() => {
+        let localChatData = localStorage.getItem('chat-histories');
+        return localChatData ? JSON.parse(localChatData) : {};
+    })
+
     useEffect(() => {
         localStorage.setItem('playgrounds-data', JSON.stringify(folders));
     }, [folders])
+
+    useEffect(() => {
+        localStorage.setItem('chat-histories', JSON.stringify(chatHistories));
+    }, [chatHistories])
+
+    const updateChatHistory = (playgroundId, messages) => {
+        setChatHistories(prev => ({
+            ...prev,
+            [playgroundId]: messages
+        }));
+    };
 
     const deleteCard = (folderId, cardId) => {
         setFolders((oldState) => {
@@ -75,13 +91,28 @@ const PlaygroundProvider = ({ children }) => {
             delete newState[folderId].playgrounds[cardId];
             return newState;
         });
+        
+        // Also delete chat history
+        setChatHistories(prev => {
+            const newHistories = { ...prev };
+            delete newHistories[cardId];
+            return newHistories;
+        });
     }
 
     const deleteFolder = (folderId) => {
+        const playgroundIds = Object.keys(folders[folderId].playgrounds);
         setFolders((oldState) => {
             const newState = { ...oldState };
             delete newState[folderId];
             return newState;
+        });
+
+        // Also delete chat histories for all playgrounds in this folder
+        setChatHistories(prev => {
+            const newHistories = { ...prev };
+            playgroundIds.forEach(id => delete newHistories[id]);
+            return newHistories;
         });
     }
 
@@ -158,6 +189,8 @@ const PlaygroundProvider = ({ children }) => {
 
     const PlayGroundFeatures = {
         folders: folders,
+        chatHistories: chatHistories,
+        updateChatHistory: updateChatHistory,
         deleteCard: deleteCard,
         deleteFolder: deleteFolder,
         addFolder: addFolder,
