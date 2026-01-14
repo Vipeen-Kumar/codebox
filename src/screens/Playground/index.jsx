@@ -128,7 +128,11 @@ const Playground = () => {
 
   return (
     <div>
-      <Navbar isFullScreen={isFullScreen} />
+      <Navbar 
+        isFullScreen={isFullScreen} 
+        currentCode={currentCode} 
+        currentLanguage={currentLanguage} 
+      />
 
       <MainContainer isFullScreen={isFullScreen}>
         <EditorContainer

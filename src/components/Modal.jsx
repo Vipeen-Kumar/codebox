@@ -7,6 +7,7 @@ import {
   EditFolder,
   EditPlaygroundTitle,
   Loading,
+  AIChat,
 } from './ModalTypes'
 import { ModalContext } from '../context/ModalContext'
 
@@ -118,10 +119,11 @@ const Modal = () => {
         {modalType === 2 && <NewPlayground />}
         {modalType === 3 && <NewPlaygroundAndFolder />}
         {modalType === 4 && <EditFolder />}
-        {modalType === 5 && <EditPlaygroundTitle />}
-        {modalType === 6 && <Loading />}
-      </ModalContent>
-    </ModalContainer>
+      {modalType === 5 && <EditPlaygroundTitle />}
+      {modalType === 6 && <Loading />}
+      {modalType === 7 && <AIChat />}
+    </ModalContent>
+  </ModalContainer>
   )
 }
 
