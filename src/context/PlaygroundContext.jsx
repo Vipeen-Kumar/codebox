@@ -5,7 +5,8 @@ export const PlaygroundContext = createContext();
 
 export const languageMap = {
     "cpp": {
-        id: 54,
+        language: "c++",
+        version: "10.2.0",
         defaultCode: 
         "#include <iostream>\n"
         + "using namespace std;\n\n"
@@ -15,7 +16,8 @@ export const languageMap = {
         + "}",
     },
     "java": {
-        id: 62,
+        language: "java",
+        version: "15.0.2",
         defaultCode: `public class Main {
             public static void main(String[] args) {
                 System.out.println("Hello World!");
@@ -23,11 +25,13 @@ export const languageMap = {
     }`,
     },
     "python": {
-        id: 71,
+        language: "python",
+        version: "3.10.0",
         defaultCode: `print("Hello World!")`,
     },
     "javascript": {
-        id: 63,
+        language: "javascript",
+        version: "18.15.0",
         defaultCode: `console.log("Hello World!");`,
     }
 }
