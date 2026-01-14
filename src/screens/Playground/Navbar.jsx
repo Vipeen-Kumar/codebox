@@ -64,7 +64,7 @@ const Navbar = ({ isFullScreen, currentCode, currentLanguage }) => {
           style={{
             fontSize: "2rem", // increase size
             fontWeight: 700, // make it bold
-            fontFamily: "Inter, sans-serif",
+            fontFamily: "Open Sans, sans-serif",
             textShadow: "0 0 6px rgba(128, 128, 128, 0.4)",
           }}
         >

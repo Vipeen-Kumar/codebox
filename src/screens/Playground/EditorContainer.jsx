@@ -85,6 +85,7 @@ const Button = styled.button`
   border-radius: 32px;
   font-weight: 700;
   cursor: pointer;
+  font-family: 'Open Sans', sans-serif;
 
   &:hover {
     background: #000000ff;
@@ -188,7 +189,7 @@ const SaveToast = styled.div`
   padding: 0.6rem 0.6rem;
   border-radius: 12px;
   font-weight: 600;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Open Sans', sans-serif;
   z-index: 9999;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
 `;

@@ -38,7 +38,7 @@ const ModalContent = styled.div`
   min-width: 300px;
   border-radius: 12px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Open Sans', sans-serif;
 `
 
 export const Header = styled.div`
@@ -80,7 +80,7 @@ export const Input = styled.div`
     border: 1px solid #333;
     border-radius: 6px;
     outline: none;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Open Sans', sans-serif;
 
     &:focus {
       border-color: #f59e0b;
@@ -96,7 +96,7 @@ export const Input = styled.div`
     border-radius: 32px;
     font-weight: 600;
     cursor: pointer;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Open Sans', sans-serif;
 
     &:hover {
       background: rgba(245, 158, 11, 0.1);

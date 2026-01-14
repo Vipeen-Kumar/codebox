@@ -12,7 +12,7 @@ body {
   color: #eaeaea;
 
   /* UI FONT */
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont,
+  font-family: 'Open Sans', -apple-system, BlinkMacSystemFont,
     'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
     'Cantarell', 'Helvetica Neue', sans-serif;
 
@@ -28,7 +28,9 @@ code,
 pre,
 textarea,
 .monaco-editor,
-.monaco-editor * {
+.monaco-editor *,
+.cm-editor,
+.cm-editor * {
   font-family: 'JetBrains Mono',
     'Fira Code', Menlo, Monaco,
     Consolas, 'Courier New', monospace;

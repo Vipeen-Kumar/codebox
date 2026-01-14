@@ -24,7 +24,7 @@ const StyledLeftComponent = styled.div`
 const ContentContainer = styled.div`
   text-align: center;
   color: #eaeaea;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Open Sans', sans-serif;
 `
 
 const Logo = styled.img`
@@ -62,7 +62,7 @@ const AddNewButton = styled.button`
   gap: 0.5rem;
 
   transition: all 0.2s ease-in-out;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Open Sans', sans-serif;
 
   span {
     font-size: 1.6rem;

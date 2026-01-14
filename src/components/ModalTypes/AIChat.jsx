@@ -73,7 +73,7 @@ const ChatInput = styled.input`
   padding: 0.8rem;
   border-radius: 24px;
   outline: none;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Open Sans', sans-serif;
   font-size: 0.95rem;
 
   &:focus {

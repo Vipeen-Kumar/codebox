@@ -16,7 +16,7 @@ const StyledRightComponent = styled.div`
   padding: 2rem;
   background: #1e1e1e;
   color: #eaeaea;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Open Sans', sans-serif;
 
   @media (max-width: 768px) {
     position: relative;

@@ -17,6 +17,7 @@ const InputWithSelect = styled.div`
   margin-top: 1.2rem;
   align-items: center;
   color: #eaeaea;
+  font-family: 'Open Sans', sans-serif;
 
   input {
     height: 2.4rem;
@@ -26,6 +27,7 @@ const InputWithSelect = styled.div`
     color: #eaeaea;
     border-radius: 6px;
     outline: none;
+    font-family: 'Open Sans', sans-serif;
 
     &:focus {
       border-color: #f59e0b;
@@ -43,6 +45,7 @@ const InputWithSelect = styled.div`
     font-weight: 700;
     cursor: pointer;
     transition: all 0.2s ease-in-out;
+    font-family: 'Open Sans', sans-serif;
 
     &:hover {
       background: #e08c00;

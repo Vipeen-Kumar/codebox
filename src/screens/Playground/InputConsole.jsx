@@ -55,7 +55,7 @@ export const TextArea = styled.textarea`
   background: #1e1e1e;
   color: #eaeaea;
 
-  font-family: 'Fira Code', monospace;
+  font-family: 'JetBrains Mono', monospace;
 
   &::placeholder {
     color: #8e8e8e;

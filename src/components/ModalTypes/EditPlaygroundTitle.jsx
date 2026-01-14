@@ -19,7 +19,7 @@ const EditPlaygroundTitle = () => {
         <h2
           style={{
             color: '#f59e0b',
-            fontFamily: 'Inter, sans-serif',
+            fontFamily: 'Open Sans, sans-serif',
           }}
         >
           Edit Card Title
@@ -39,7 +39,7 @@ const EditPlaygroundTitle = () => {
             background: '#1e1e1e',
             color: '#eaeaea',
             border: '1px solid #333',
-            fontFamily: 'Inter, sans-serif',
+            fontFamily: 'Open Sans, sans-serif',
           }}
         />
 
@@ -51,7 +51,7 @@ const EditPlaygroundTitle = () => {
           style={{
             background: 'none',
             color: '#f59e0b',
-            fontFamily: 'Inter, sans-serif',
+            fontFamily: 'Open Sans, sans-serif',
             fontWeight: 600,
           }}
         >
