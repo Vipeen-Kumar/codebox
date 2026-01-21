@@ -187,6 +187,24 @@ const PlaygroundProvider = ({ children }) => {
         })
     }
 
+    const addCommit = (folderId, cardId, message, code) => {
+        setFolders((oldState) => {
+            const newState = { ...oldState };
+            const playground = newState[folderId].playgrounds[cardId];
+            if (!playground.commits) playground.commits = [];
+            
+            playground.commits.push({
+                id: uuid(),
+                message: message,
+                timestamp: new Date().toISOString(),
+                code: code
+            });
+            
+            playground.code = code;
+            return newState;
+        })
+    }
+
     const PlayGroundFeatures = {
         folders: folders,
         chatHistories: chatHistories,
@@ -199,6 +217,7 @@ const PlaygroundProvider = ({ children }) => {
         editFolderTitle: editFolderTitle,
         editPlaygroundTitle: editPlaygroundTitle,
         savePlayground: savePlayground,
+        addCommit: addCommit,
     }
 
     return (

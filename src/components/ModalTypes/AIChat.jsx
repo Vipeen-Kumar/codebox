@@ -1,7 +1,7 @@
 import React, { useState, useContext, useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import { Header, CloseButton } from '../Modal';
-import { IoCloseSharp, IoSend, IoCodeSlashOutline, IoTrashOutline } from 'react-icons/io5';
+import { IoCloseSharp, IoSend, IoCodeSlashOutline, IoTrashOutline, IoCheckmarkCircleOutline, IoAlertCircleOutline } from 'react-icons/io5';
 import { ModalContext } from '../../context/ModalContext';
 import { PlaygroundContext } from '../../context/PlaygroundContext';
 import ReactMarkdown from 'react-markdown';
@@ -178,10 +178,260 @@ const ActionsContainer = styled.div`
   margin-bottom: 0.5rem;
 `;
 
+const ActionBlock = styled.div`
+  background: #2d2d2d;
+  border: 1px solid #444;
+  border-left: 4px solid #f59e0b;
+  border-radius: 4px;
+  padding: 1rem;
+  margin: 1rem 0;
+`;
+
+const ActionHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  color: #f59e0b;
+`;
+
+const ApplyButton = styled.button`
+  background: #f59e0b;
+  color: #1e1e1e;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  
+  &:disabled {
+    background: #555;
+    cursor: not-allowed;
+  }
+`;
+
+const ValidationStatus = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+  color: ${props => props.type === 'error' ? '#ff4d4d' : props.type === 'success' ? '#4caf50' : '#aaa'};
+`;
+
+const languageMap = {
+  javascript: { language: 'javascript', version: '18.15.0' },
+  python: { language: 'python', version: '3.10.0' },
+  java: { language: 'java', version: '15.0.2' },
+  cpp: { language: 'cpp', version: '10.2.0' },
+  c: { language: 'c', version: '10.2.0' }
+};
+
 const AIChat = () => {
   const { isOpenModal, closeModal } = useContext(ModalContext);
-  const { chatHistories, updateChatHistory, folders } = useContext(PlaygroundContext);
+  const { chatHistories, updateChatHistory, folders, addCommit, addPlayground } = useContext(PlaygroundContext);
   const { code: codeContext, language: languageContext, playgroundId, folderId } = isOpenModal.identifiers;
+
+  const [validating, setValidating] = useState({});
+
+  const validateAndApply = async (msgIndex, commitMessage, newCode) => {
+    setValidating(prev => ({ ...prev, [msgIndex]: 'validating' }));
+    
+    try {
+      const res = await axios.post('http://localhost:5000/api/piston/execute', {
+        language: languageMap[languageContext]?.language || languageContext,
+        version: languageMap[languageContext]?.version || "*",
+        source_code: newCode,
+        stdin: ""
+      });
+
+      const { run, compile } = res.data;
+      const error = (compile && compile.code !== 0) || (run && run.code !== 0);
+      
+      if (error) {
+        const output = (compile?.stderr || compile?.output) || (run?.stderr || run?.output);
+        setValidating(prev => ({ ...prev, [msgIndex]: { status: 'error', message: output } }));
+        return;
+      }
+
+      addCommit(folderId, playgroundId, commitMessage, newCode);
+      setValidating(prev => ({ ...prev, [msgIndex]: { status: 'success', message: 'Applied successfully!' } }));
+      
+    } catch (err) {
+      setValidating(prev => ({ ...prev, [msgIndex]: { status: 'error', message: 'Validation failed: ' + err.message } }));
+    }
+  };
+
+  const renderMessageContent = (msg, msgIndex) => {
+    if (msg.role === 'user') return msg.text;
+
+    const actionRegex = /\[(?:FILE_UPDATE|CREATE_PLAYGROUND)\]([\s\S]*?)\[\/(?:FILE_UPDATE|CREATE_PLAYGROUND)\]/g;
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = actionRegex.exec(msg.text)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push({ type: 'text', content: msg.text.slice(lastIndex, match.index) });
+      }
+
+      const isCreate = match[0].startsWith('[CREATE_PLAYGROUND]');
+      const blockContent = match[1];
+      const commitMatch = /Commit Message: (.*)/.exec(blockContent);
+      const titleMatch = /Title: (.*)/.exec(blockContent);
+      const langMatch = /Language: (.*)/.exec(blockContent);
+      const codeMatch = /```(?:\w+)?\n([\s\S]*?)```/.exec(blockContent);
+
+      if (isCreate) {
+        if (titleMatch && langMatch && codeMatch) {
+          parts.push({
+            type: 'create',
+            title: titleMatch[1],
+            language: langMatch[1],
+            code: codeMatch[1]
+          });
+        }
+      } else if (commitMatch && codeMatch) {
+        parts.push({
+          type: 'action',
+          commitMessage: commitMatch[1],
+          code: codeMatch[1]
+        });
+      }
+
+      lastIndex = actionRegex.lastIndex;
+    }
+
+    if (lastIndex < msg.text.length) {
+      parts.push({ type: 'text', content: msg.text.slice(lastIndex) });
+    }
+
+    if (parts.length === 0) {
+      return (
+        <ReactMarkdown
+          children={msg.text}
+          components={{
+            code({node, inline, className, children, ...props}) {
+              const match = /language-(\w+)/.exec(className || '')
+              return !inline && match ? (
+                <SyntaxHighlighter
+                  children={String(children).replace(/\n$/, '')}
+                  style={vscDarkPlus}
+                  language={match[1]}
+                  PreTag="div"
+                  {...props}
+                />
+              ) : (
+                <code className={className} {...props}>
+                  {children}
+                </code>
+              )
+            }
+          }}
+        />
+      );
+    }
+
+    return parts.map((part, i) => {
+      if (part.type === 'text') {
+        return (
+          <ReactMarkdown
+            key={i}
+            children={part.content}
+            components={{
+              code({node, inline, className, children, ...props}) {
+                const match = /language-(\w+)/.exec(className || '')
+                return !inline && match ? (
+                  <SyntaxHighlighter
+                    children={String(children).replace(/\n$/, '')}
+                    style={vscDarkPlus}
+                    language={match[1]}
+                    PreTag="div"
+                    {...props}
+                  />
+                ) : (
+                  <code className={className} {...props}>
+                    {children}
+                  </code>
+                )
+              }
+          }}
+        />
+      );
+    } else if (part.type === 'create') {
+      const status = validating[msgIndex + '_create_' + i];
+      return (
+        <ActionBlock key={i} style={{ borderLeftColor: '#4caf50' }}>
+          <ActionHeader style={{ color: '#4caf50' }}>
+            <span>New Playground Proposal</span>
+            <ApplyButton 
+              style={{ background: '#4caf50' }}
+              onClick={async () => {
+                setValidating(prev => ({ ...prev, [msgIndex + '_create_' + i]: 'validating' }));
+                try {
+                  // Simple validation: check if language is supported
+                  if (!languageMap[part.language.toLowerCase()]) {
+                    throw new Error('Unsupported language: ' + part.language);
+                  }
+                  addPlayground(folderId, part.title, part.language.toLowerCase());
+                  setValidating(prev => ({ ...prev, [msgIndex + '_create_' + i]: { status: 'success', message: 'Created successfully!' } }));
+                } catch (err) {
+                  setValidating(prev => ({ ...prev, [msgIndex + '_create_' + i]: { status: 'error', message: err.message } }));
+                }
+              }}
+              disabled={status === 'validating' || status?.status === 'success'}
+            >
+              {status === 'validating' ? 'Creating...' : status?.status === 'success' ? 'Created' : 'Create Playground'}
+            </ApplyButton>
+          </ActionHeader>
+          <div style={{ fontSize: '0.85rem', color: '#aaa' }}>
+            <strong>Title:</strong> {part.title} | <strong>Language:</strong> {part.language}
+          </div>
+          {status && (
+            <ValidationStatus type={status.status}>
+              {status.status === 'validating' ? null : status.status === 'success' ? <IoCheckmarkCircleOutline /> : <IoAlertCircleOutline />}
+              {status.message}
+            </ValidationStatus>
+          )}
+        </ActionBlock>
+      );
+    } else {
+      const status = validating[msgIndex];
+        return (
+          <ActionBlock key={i}>
+            <ActionHeader>
+              <span>Proposed Change</span>
+              <ApplyButton 
+                onClick={() => validateAndApply(msgIndex, part.commitMessage, part.code)}
+                disabled={status === 'validating' || status?.status === 'success'}
+              >
+                {status === 'validating' ? 'Validating...' : status?.status === 'success' ? 'Applied' : 'Apply Changes'}
+              </ApplyButton>
+            </ActionHeader>
+            <div style={{ fontSize: '0.85rem', color: '#aaa', marginBottom: '0.5rem' }}>
+              <strong>Commit:</strong> {part.commitMessage}
+            </div>
+            <SyntaxHighlighter
+              style={vscDarkPlus}
+              language={languageContext}
+              children={part.code}
+              customStyle={{ fontSize: '0.85rem' }}
+            />
+            {status && (
+              <ValidationStatus type={status.status}>
+                {status.status === 'validating' ? null : status.status === 'success' ? <IoCheckmarkCircleOutline /> : <IoAlertCircleOutline />}
+                {status === 'validating' ? 'Testing code execution...' : status.message}
+              </ValidationStatus>
+            )}
+          </ActionBlock>
+        );
+      }
+    });
+  };
 
   const playgroundTitle = folders[folderId]?.playgrounds[playgroundId]?.title || 'Unknown Playground';
 
@@ -224,7 +474,29 @@ Current Code:
 \`\`\`${languageContext}
 ${codeContext}
 \`\`\`
-Please use this context to answer my questions accurately. Mention file/playground names when relevant.`;
+
+You have permission to DIRECTLY MODIFY code or CREATE NEW playgrounds. 
+
+To propose a change to the current file:
+[FILE_UPDATE]
+Commit Message: <brief description>
+Code:
+\`\`\`${languageContext}
+<full updated code>
+\`\`\`
+[/FILE_UPDATE]
+
+To propose creating a NEW playground in the current folder:
+[CREATE_PLAYGROUND]
+Title: <playground name>
+Language: <cpp|java|python|javascript>
+Code:
+\`\`\`<language>
+<initial code>
+\`\`\`
+[/CREATE_PLAYGROUND]
+
+All changes are validated before implementation.`;
 
       const apiHistory = newMessages.map(msg => ({
         role: msg.role === 'user' ? 'user' : 'model',
@@ -274,31 +546,7 @@ Please use this context to answer my questions accurately. Mention file/playgrou
         <MessagesArea>
           {messages.map((msg, index) => (
             <MessageBubble key={index} isUser={msg.role === 'user'}>
-              {msg.role === 'user' ? (
-                msg.text
-              ) : (
-                <ReactMarkdown
-                  children={msg.text}
-                  components={{
-                    code({node, inline, className, children, ...props}) {
-                      const match = /language-(\w+)/.exec(className || '')
-                      return !inline && match ? (
-                        <SyntaxHighlighter
-                          children={String(children).replace(/\n$/, '')}
-                          style={vscDarkPlus}
-                          language={match[1]}
-                          PreTag="div"
-                          {...props}
-                        />
-                      ) : (
-                        <code className={className} {...props}>
-                          {children}
-                        </code>
-                      )
-                    }
-                  }}
-                />
-              )}
+              {renderMessageContent(msg, index)}
             </MessageBubble>
           ))}
           {loading && (

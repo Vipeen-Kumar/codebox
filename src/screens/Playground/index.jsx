@@ -48,6 +48,12 @@ const Playground = () => {
   const [currentLanguage, setCurrentLanguage] = useState(language)
   const [currentCode, setCurrentCode] = useState(code)
   const [currentInput, setCurrentInput] = useState('')
+
+  // Sync with context updates (e.g. from AI changes)
+  React.useEffect(() => {
+    setCurrentCode(code);
+    setCurrentLanguage(language);
+  }, [code, language]);
   const [currentOutput, setCurrentOutput] = useState('')
   const [isFullScreen, setIsFullScreen] = useState(false)
 
