@@ -14,21 +14,30 @@ const NavbarContainer = styled.div`
   justify-content: space-between;
   padding: 0 2rem;
   border-bottom: 1px solid #333;
-`;
+  overflow: hidden;
+  transition: height 0.3s ease;
 
+  @media (max-width: 768px) {
+    padding: 0 1rem;
+  }
+`;
 
 const NavbarContent = styled.button`
   background: transparent;
   border: 0;
-
   display: flex;
   align-items: center;
   gap: 1rem;
   cursor: pointer;
+  min-width: 0;
 `;
 
 const Logo = styled.img`
   width: 60px;
+  flex-shrink: 0;
+  @media (max-width: 768px) {
+    width: 45px;
+  }
 `;
 
 const AIIconContainer = styled.div`
@@ -37,6 +46,7 @@ const AIIconContainer = styled.div`
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-shrink: 0;
 
   &:hover {
     transform: scale(1.1);
@@ -45,6 +55,26 @@ const AIIconContainer = styled.div`
   img {
     width: 32px;
     height: 32px;
+    @media (max-width: 768px) {
+      width: 28px;
+      height: 28px;
+    }
+  }
+`;
+
+const LogoText = styled.div`
+  font-size: 2rem;
+  font-weight: 700;
+  font-family: "Open Sans", sans-serif;
+  text-shadow: 0 0 6px rgba(128, 128, 128, 0.4);
+  color: white;
+
+  @media (max-width: 768px) {
+    font-size: 1.5rem;
+  }
+
+  @media (max-width: 480px) {
+    display: none; /* Hide text on very small screens to keep AI icon visible */
   }
 `;
 
@@ -60,17 +90,9 @@ const Navbar = ({ isFullScreen, currentCode, currentLanguage, playgroundId, fold
         }}
       >
         <Logo src={logo} />
-        <div
-          className="logo"
-          style={{
-            fontSize: "2rem", // increase size
-            fontWeight: 700, // make it bold
-            fontFamily: "Open Sans, sans-serif",
-            textShadow: "0 0 6px rgba(128, 128, 128, 0.4)",
-          }}
-        >
+        <LogoText>
           codebox<span style={{ color: "#f59e0b" , textShadow: "0 0 6px rgba(245,158,11,0.4)"}}>.tech</span>
-        </div>
+        </LogoText>
       </NavbarContent>
       
       <AIIconContainer onClick={() => setIsAIChatOpen(!isAIChatOpen)}>

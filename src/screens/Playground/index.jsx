@@ -19,19 +19,32 @@ import axios from 'axios'
 const MainContainer = styled.div`
   display: grid;
   grid-template-columns: ${({ isFullScreen, isAIChatOpen }) =>
-    isFullScreen ? '1fr' : isAIChatOpen ? '1.5fr 0.7fr 1fr' : '2fr 1fr'};
+    isFullScreen ? '1fr' : isAIChatOpen ? 'minmax(400px, 1.5fr) minmax(300px, 0.8fr) 350px' : '2fr 1fr'};
   height: ${({ isFullScreen }) =>
     isFullScreen ? '100vh' : 'calc(100vh - 4.5rem)'};
   overflow: hidden;
 
+  @media (max-width: 1400px) {
+    grid-template-columns: ${({ isAIChatOpen }) => isAIChatOpen ? '1fr 0.8fr 320px' : '2fr 1fr'};
+  }
+
   @media (max-width: 1200px) {
-    grid-template-columns: ${({ isAIChatOpen }) => isAIChatOpen ? '1fr 1fr' : '2fr 1fr'};
+    grid-template-columns: ${({ isAIChatOpen }) => isAIChatOpen ? '1fr 350px' : '2fr 1fr'};
+    
+    & > .consoles-column {
+      display: ${({ isAIChatOpen }) => isAIChatOpen ? 'none' : 'grid'};
+    }
   }
 
   @media (max-width: 768px) {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
     height: auto;
     overflow: auto;
+    
+    & > .consoles-column {
+      display: grid;
+    }
   }
 `
 
@@ -177,7 +190,7 @@ const Playground = () => {
           isFullScreen={isFullScreen}
         />
         {!isFullScreen && (
-          <Consoles>
+          <Consoles className="consoles-column">
             <InputConsole
               currentInput={currentInput}
               setCurrentInput={setCurrentInput}

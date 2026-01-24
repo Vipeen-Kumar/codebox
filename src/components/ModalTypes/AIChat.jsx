@@ -14,9 +14,11 @@ import aiIcon from '../../assets/aiicon.png';
 const ChatContainer = styled.div`
   display: flex;
   flex-direction: column;
-  height: ${props => props.isSidePanel ? '100%' : '500px'};
+  flex: ${props => props.isSidePanel ? '1' : 'none'};
+  height: ${props => props.isSidePanel ? 'auto' : '500px'};
   color: #eaeaea;
-  padding: ${props => props.isSidePanel ? '1rem' : '0'};
+  padding: 0;
+  overflow: hidden;
 `;
 
 const MessagesArea = styled.div`
@@ -27,8 +29,8 @@ const MessagesArea = styled.div`
   flex-direction: column;
   gap: 1rem;
   background: #252526;
-  border-radius: 8px;
-  margin-bottom: 1rem;
+  margin: ${props => props.isSidePanel ? '0' : '0 1rem 1rem 1rem'};
+  border-radius: ${props => props.isSidePanel ? '0' : '8px'};
   
   &::-webkit-scrollbar {
     width: 6px;
@@ -97,6 +99,9 @@ const InputArea = styled.div`
   display: flex;
   gap: 0.8rem;
   align-items: center;
+  padding: 1rem;
+  background: #1e1e1e;
+  border-top: 1px solid #333;
 `;
 
 const ChatInput = styled.input`
@@ -208,7 +213,8 @@ const ActionsContainer = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #1e1e1e;
 `;
 
 const ActionBlock = styled.div`
@@ -577,7 +583,7 @@ All changes are validated before implementation.`;
       {isSidePanel ? (
         <SidePanelHeader>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-            <img src={aiIcon} alt="AI" style={{ width: '20px', height: '20px' }} />
+            <img src={aiIcon} alt="AI" style={{ width: '20px', height: '20px' }} onError={(e) => {e.target.style.display='none'}} />
             <h2>AI Assistant</h2>
           </div>
           <CloseIconButton onClick={() => setIsAIChatOpen(false)}>
@@ -597,7 +603,7 @@ All changes are validated before implementation.`;
       )}
 
       <ChatContainer isSidePanel={isSidePanel}>
-        <MessagesArea>
+        <MessagesArea isSidePanel={isSidePanel}>
           {messages.map((msg, index) => (
             <MessageBubble key={index} isUser={msg.role === 'user'} isSidePanel={isSidePanel}>
               {renderMessageContent(msg, index)}
