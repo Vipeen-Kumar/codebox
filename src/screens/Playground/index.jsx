@@ -83,7 +83,9 @@ const ChatSidePanel = styled.div`
 const Consoles = styled.div`
   display: grid;
   width: 100%;
+  height: 100%;
   grid-template-rows: 1fr 1fr;
+  background: #1e1e1e;
 `
 
 /* ======================

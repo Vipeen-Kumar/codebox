@@ -48,9 +48,11 @@ export const TextArea = styled.textarea`
   resize: none;
   border: none;
   outline: none;
-  padding: 0.75rem;
+  padding: 1rem;
   font-size: 1.1rem;
+  line-height: 1.6;
   overflow: auto;
+  width: 100%;
 
   background: #1e1e1e;
   color: #eaeaea;
