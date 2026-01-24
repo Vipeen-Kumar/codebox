@@ -8,6 +8,7 @@ import { useParams } from 'react-router-dom'
 import { languageMap, PlaygroundContext } from '../../context/PlaygroundContext'
 import { ModalContext } from '../../context/ModalContext'
 import Modal from '../../components/Modal'
+import AIChat from '../../components/ModalTypes/AIChat'
 import { Buffer } from 'buffer'
 import axios from 'axios'
 
@@ -17,13 +18,30 @@ import axios from 'axios'
 
 const MainContainer = styled.div`
   display: grid;
-  grid-template-columns: ${({ isFullScreen }) =>
-    isFullScreen ? '1fr' : '2fr 1fr'};
+  grid-template-columns: ${({ isFullScreen, isAIChatOpen }) =>
+    isFullScreen ? '1fr' : isAIChatOpen ? '1.5fr 0.7fr 1fr' : '2fr 1fr'};
   min-height: ${({ isFullScreen }) =>
     isFullScreen ? '100vh' : 'calc(100vh - 4.5rem)'};
 
+  @media (max-width: 1200px) {
+    grid-template-columns: ${({ isAIChatOpen }) => isAIChatOpen ? '1fr 1fr' : '2fr 1fr'};
+  }
+
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
+  }
+`
+
+const ChatSidePanel = styled.div`
+  background: #1e1e1e;
+  border-left: 1px solid #333;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 4.5rem);
+  overflow: hidden;
+
+  @media (max-width: 768px) {
+    height: 500px;
   }
 `
 
@@ -39,7 +57,7 @@ const Consoles = styled.div`
 
 const Playground = () => {
   const { folderId, playgroundId } = useParams()
-  const { folders, savePlayground } = useContext(PlaygroundContext)
+  const { folders, savePlayground, isAIChatOpen } = useContext(PlaygroundContext)
   const { isOpenModal, openModal, closeModal } = useContext(ModalContext)
 
   const { title, language, code } =
@@ -133,7 +151,7 @@ const Playground = () => {
   ====================== */
 
   return (
-    <div>
+    <>
       <Navbar
         isFullScreen={isFullScreen}
         currentCode={currentCode}
@@ -141,8 +159,7 @@ const Playground = () => {
         playgroundId={playgroundId}
         folderId={folderId}
       />
-
-      <MainContainer isFullScreen={isFullScreen}>
+      <MainContainer isFullScreen={isFullScreen} isAIChatOpen={isAIChatOpen}>
         <EditorContainer
           title={title}
           currentLanguage={currentLanguage}
@@ -153,23 +170,26 @@ const Playground = () => {
           playgroundId={playgroundId}
           saveCode={saveCode}
           runCode={runCode}
-          getFile={getFile}
-          isFullScreen={isFullScreen}
           setIsFullScreen={setIsFullScreen}
+          isFullScreen={isFullScreen}
         />
-
-        <Consoles>
-          <InputConsole
-            currentInput={currentInput}
-            setCurrentInput={setCurrentInput}
-            getFile={getFile}
-          />
-          <OutputConsole currentOutput={currentOutput} />
-        </Consoles>
+        {!isFullScreen && (
+          <Consoles>
+            <InputConsole
+              currentInput={currentInput}
+              setCurrentInput={setCurrentInput}
+            />
+            <OutputConsole currentOutput={currentOutput} />
+          </Consoles>
+        )}
+        {!isFullScreen && isAIChatOpen && (
+          <ChatSidePanel>
+            <AIChat isSidePanel={true} />
+          </ChatSidePanel>
+        )}
       </MainContainer>
-
       {isOpenModal.show && <Modal />}
-    </div>
+    </>
   )
 }
 

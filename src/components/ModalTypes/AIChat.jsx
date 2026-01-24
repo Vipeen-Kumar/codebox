@@ -1,4 +1,5 @@
 import React, { useState, useContext, useRef, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { Header, CloseButton } from '../Modal';
 import { IoCloseSharp, IoSend, IoCodeSlashOutline, IoTrashOutline, IoCheckmarkCircleOutline, IoAlertCircleOutline } from 'react-icons/io5';
@@ -8,12 +9,14 @@ import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import axios from 'axios';
+import aiIcon from '../../assets/aiicon.png';
 
 const ChatContainer = styled.div`
   display: flex;
   flex-direction: column;
-  height: 500px;
+  height: ${props => props.isSidePanel ? '100%' : '500px'};
   color: #eaeaea;
+  padding: ${props => props.isSidePanel ? '1rem' : '0'};
 `;
 
 const MessagesArea = styled.div`
@@ -28,21 +31,21 @@ const MessagesArea = styled.div`
   margin-bottom: 1rem;
   
   &::-webkit-scrollbar {
-    width: 8px;
+    width: 6px;
   }
   &::-webkit-scrollbar-thumb {
     background: #3a3a3a;
-    border-radius: 4px;
+    border-radius: 3px;
   }
 `;
 
 const MessageBubble = styled.div`
-  max-width: 85%;
+  max-width: ${props => props.isSidePanel ? '90%' : '85%'};
   padding: 0.8rem 1rem;
   border-radius: 12px;
-  background: ${props => props.isUser ? '#0097d7' : '#3e3e42'};
+  background: ${props => props.isUser ? '#007acc' : '#3e3e42'};
   align-self: ${props => props.isUser ? 'flex-end' : 'flex-start'};
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   line-height: 1.5;
   
   pre {
@@ -50,6 +53,7 @@ const MessageBubble = styled.div`
     padding: 0.8rem !important;
     border-radius: 6px !important;
     overflow-x: auto;
+    font-size: 0.8rem;
   }
 
   code {
@@ -57,6 +61,35 @@ const MessageBubble = styled.div`
     padding: 0.2rem 0.4rem;
     border-radius: 4px;
     font-family: 'JetBrains Mono', monospace;
+  }
+`;
+
+const SidePanelHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid #333;
+  background: #252526;
+
+  h2 {
+    font-size: 1.1rem;
+    color: #f59e0b;
+    margin: 0;
+  }
+`;
+
+const CloseIconButton = styled.button`
+  background: transparent;
+  border: none;
+  color: #aaa;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-size: 1.2rem;
+  
+  &:hover {
+    color: #fff;
   }
 `;
 
@@ -231,10 +264,19 @@ const languageMap = {
   c: { language: 'c', version: '10.2.0' }
 };
 
-const AIChat = () => {
+const AIChat = ({ isSidePanel }) => {
   const { isOpenModal, closeModal } = useContext(ModalContext);
-  const { chatHistories, updateChatHistory, folders, addCommit, addPlayground } = useContext(PlaygroundContext);
-  const { code: codeContext, language: languageContext, playgroundId, folderId } = isOpenModal.identifiers;
+  const { chatHistories, updateChatHistory, folders, addCommit, addPlayground, setIsAIChatOpen } = useContext(PlaygroundContext);
+  
+  // Get identifiers from modal or from route params if in side panel
+  const { folderId: paramFolderId, playgroundId: paramPlaygroundId } = useParams();
+  
+  const folderId = isSidePanel ? paramFolderId : isOpenModal.identifiers.folderId;
+  const playgroundId = isSidePanel ? paramPlaygroundId : isOpenModal.identifiers.playgroundId;
+  
+  const playground = folders[folderId]?.playgrounds[playgroundId];
+  const codeContext = playground?.code;
+  const languageContext = playground?.language;
 
   const [validating, setValidating] = useState({});
 
@@ -532,25 +574,37 @@ All changes are validated before implementation.`;
 
   return (
     <>
-      <Header>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-            <img src="/src/assets/aiicon.png" alt="AI" style={{ width: '24px', height: '24px' }} onError={(e) => {e.target.style.display='none'}} />
-            <h2 style={{ color: '#f59e0b', margin: 0 }}>AI Assistant</h2>
-        </div>
-        <CloseButton onClick={closeModal}>
-          <IoCloseSharp />
-        </CloseButton>
-      </Header>
+      {isSidePanel ? (
+        <SidePanelHeader>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+            <img src={aiIcon} alt="AI" style={{ width: '20px', height: '20px' }} />
+            <h2>AI Assistant</h2>
+          </div>
+          <CloseIconButton onClick={() => setIsAIChatOpen(false)}>
+            <IoCloseSharp />
+          </CloseIconButton>
+        </SidePanelHeader>
+      ) : (
+        <Header>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+              <img src={aiIcon} alt="AI" style={{ width: '24px', height: '24px' }} />
+              <h2 style={{ color: '#f59e0b', margin: 0 }}>AI Assistant</h2>
+          </div>
+          <CloseButton onClick={closeModal}>
+            <IoCloseSharp />
+          </CloseButton>
+        </Header>
+      )}
 
-      <ChatContainer>
+      <ChatContainer isSidePanel={isSidePanel}>
         <MessagesArea>
           {messages.map((msg, index) => (
-            <MessageBubble key={index} isUser={msg.role === 'user'}>
+            <MessageBubble key={index} isUser={msg.role === 'user'} isSidePanel={isSidePanel}>
               {renderMessageContent(msg, index)}
             </MessageBubble>
           ))}
           {loading && (
-            <MessageBubble isUser={false}>
+            <MessageBubble isUser={false} isSidePanel={isSidePanel}>
                <LoadingDots><span></span><span></span><span></span></LoadingDots>
             </MessageBubble>
           )}
@@ -577,7 +631,7 @@ All changes are validated before implementation.`;
             }
           }}>
             <IoTrashOutline />
-            Clear Chat
+            {isSidePanel ? 'Clear' : 'Clear Chat'}
           </ClearButton>
         </ActionsContainer>
 

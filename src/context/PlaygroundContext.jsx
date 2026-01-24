@@ -70,6 +70,8 @@ const PlaygroundProvider = ({ children }) => {
         return localChatData ? JSON.parse(localChatData) : {};
     })
 
+    const [isAIChatOpen, setIsAIChatOpen] = useState(false);
+
     useEffect(() => {
         localStorage.setItem('playgrounds-data', JSON.stringify(folders));
     }, [folders])
@@ -218,6 +220,8 @@ const PlaygroundProvider = ({ children }) => {
         editPlaygroundTitle: editPlaygroundTitle,
         savePlayground: savePlayground,
         addCommit: addCommit,
+        isAIChatOpen: isAIChatOpen,
+        setIsAIChatOpen: setIsAIChatOpen,
     }
 
     return (

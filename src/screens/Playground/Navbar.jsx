@@ -4,6 +4,7 @@ import logo from "../../assets/logo.png";
 import aiIcon from "../../assets/aiicon.png";
 import { useNavigate } from "react-router-dom";
 import { ModalContext } from "../../context/ModalContext";
+import { PlaygroundContext } from "../../context/PlaygroundContext";
 
 const NavbarContainer = styled.div`
   height: ${({ isFullScreen }) => (isFullScreen ? "0" : "4.5rem")};
@@ -49,7 +50,7 @@ const AIIconContainer = styled.div`
 
 const Navbar = ({ isFullScreen, currentCode, currentLanguage, playgroundId, folderId }) => {
   const navigate = useNavigate();
-  const { openModal } = useContext(ModalContext);
+  const { isAIChatOpen, setIsAIChatOpen } = useContext(PlaygroundContext);
 
   return (
     <NavbarContainer isFullScreen={isFullScreen}>
@@ -72,16 +73,7 @@ const Navbar = ({ isFullScreen, currentCode, currentLanguage, playgroundId, fold
         </div>
       </NavbarContent>
       
-      <AIIconContainer onClick={() => openModal({ 
-        show: true, 
-        modalType: 7,
-        identifiers: {
-          code: currentCode,
-          language: currentLanguage,
-          playgroundId: playgroundId,
-          folderId: folderId
-        }
-      })}>
+      <AIIconContainer onClick={() => setIsAIChatOpen(!isAIChatOpen)}>
         <img src={aiIcon} alt="AI Assistant" />
       </AIIconContainer>
     </NavbarContainer>
