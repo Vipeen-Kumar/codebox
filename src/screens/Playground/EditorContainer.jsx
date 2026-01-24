@@ -16,8 +16,9 @@ const StyledEditorContainer = styled.div`
   width: 100%;
   background: #1e1e1e;
   color: #eaeaea;
-  min-height: ${({ isFullScreen }) =>
+  height: ${({ isFullScreen }) =>
     isFullScreen ? "100vh" : "calc(100vh - 4.5rem)"};
+  overflow: hidden;
 `;
 
 const UpperToolBar = styled.div`
@@ -95,11 +96,20 @@ const Button = styled.button`
 `;
 
 const CodeEditorContainer = styled.div`
-  height: calc(100% - 4rem);
+  flex: 1;
   background: #1e1e1e;
+  overflow: hidden;
 
   & > div {
     height: 100%;
+  }
+
+  .cm-editor {
+    height: 100%;
+  }
+
+  .cm-scroller {
+    overflow: auto;
   }
 `;
 

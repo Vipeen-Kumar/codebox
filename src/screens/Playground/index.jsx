@@ -20,8 +20,9 @@ const MainContainer = styled.div`
   display: grid;
   grid-template-columns: ${({ isFullScreen, isAIChatOpen }) =>
     isFullScreen ? '1fr' : isAIChatOpen ? '1.5fr 0.7fr 1fr' : '2fr 1fr'};
-  min-height: ${({ isFullScreen }) =>
+  height: ${({ isFullScreen }) =>
     isFullScreen ? '100vh' : 'calc(100vh - 4.5rem)'};
+  overflow: hidden;
 
   @media (max-width: 1200px) {
     grid-template-columns: ${({ isAIChatOpen }) => isAIChatOpen ? '1fr 1fr' : '2fr 1fr'};
@@ -29,6 +30,8 @@ const MainContainer = styled.div`
 
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
+    height: auto;
+    overflow: auto;
   }
 `
 
