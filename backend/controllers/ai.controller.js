@@ -7,13 +7,14 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 export const getAIResponse = async (req, res) => {
   const { prompt, history } = req.body;
+  console.log("AI Request received for prompt:", prompt);
 
   if (!prompt) {
     return res.status(400).json({ error: "Prompt is required" });
   }
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
+    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
     let chatHistory = history || [];
     

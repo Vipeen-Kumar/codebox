@@ -315,6 +315,7 @@ const AIChat = ({ isSidePanel }) => {
   };
 
   const renderMessageContent = (msg, msgIndex) => {
+    if (!msg.text) return "No response text received.";
     if (msg.role === 'user') return msg.text;
 
     const actionRegex = /\[(?:FILE_UPDATE|CREATE_PLAYGROUND)\]([\s\S]*?)\[\/(?:FILE_UPDATE|CREATE_PLAYGROUND)\]/g;
@@ -561,11 +562,13 @@ All changes are validated before implementation.`;
         history: apiHistory.slice(0, -1)
       });
 
-      const aiMessage = { role: 'model', text: response.data.text };
+      const aiText = response.data.text || "I received an empty response from the AI. Please try rephrasing your question.";
+      const aiMessage = { role: 'model', text: aiText };
       setMessages(prev => [...prev, aiMessage]);
     } catch (error) {
       console.error('AI Chat Error:', error);
-      setMessages(prev => [...prev, { role: 'model', text: 'Sorry, I encountered an error. Please try again.' }]);
+      const errorMessage = error.response?.data?.details || error.message || 'Sorry, I encountered an error. Please try again.';
+      setMessages(prev => [...prev, { role: 'model', text: `Error: ${errorMessage}` }]);
     } finally {
       setLoading(false);
     }

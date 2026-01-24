@@ -9,55 +9,74 @@ import { languageMap, PlaygroundContext } from '../../context/PlaygroundContext'
 import { ModalContext } from '../../context/ModalContext'
 import Modal from '../../components/Modal'
 import AIChat from '../../components/ModalTypes/AIChat'
-import { Buffer } from 'buffer'
 import axios from 'axios'
+import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from 'react-resizable-panels'
 
 /* ======================
    STYLES
 ====================== */
 
 const MainContainer = styled.div`
-  display: grid;
-  grid-template-columns: ${({ isFullScreen, isAIChatOpen }) =>
-    isFullScreen ? '1fr' : isAIChatOpen ? 'minmax(400px, 1.5fr) minmax(300px, 0.8fr) 350px' : '2fr 1fr'};
   height: ${({ isFullScreen }) =>
     isFullScreen ? '100vh' : 'calc(100vh - 4.5rem)'};
   overflow: hidden;
+  background: #1e1e1e;
 
-  @media (max-width: 1400px) {
-    grid-template-columns: ${({ isAIChatOpen }) => isAIChatOpen ? '1fr 0.8fr 320px' : '2fr 1fr'};
+  @media (max-width: 768px) {
+    height: auto;
+    overflow: auto;
+  }
+`
+
+const StyledPanelGroup = styled(PanelGroup)`
+  width: 100%;
+  height: 100%;
+
+  @media (max-width: 768px) {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+`
+
+const ResizeHandle = styled(PanelResizeHandle)`
+  width: 4px;
+  background: #1e1e1e;
+  transition: background 0.2s ease;
+  position: relative;
+  cursor: col-resize;
+  border-left: 1px solid #333;
+  border-right: 1px solid #333;
+
+  &:hover, &[data-resize-handle-active] {
+    background: #007acc;
+    border-color: #007acc;
   }
 
-  @media (max-width: 1200px) {
-    grid-template-columns: ${({ isAIChatOpen }) => isAIChatOpen ? '1fr 350px' : '2fr 1fr'};
-    
-    & > .consoles-column {
-      display: ${({ isAIChatOpen }) => isAIChatOpen ? 'none' : 'grid'};
-    }
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -4px;
+    right: -4px;
+    z-index: 10;
   }
 
   @media (max-width: 768px) {
-    display: flex;
-    flex-direction: column;
-    height: auto;
-    overflow: auto;
-    
-    & > .consoles-column {
-      display: grid;
-    }
+    display: none;
   }
 `
 
 const ChatSidePanel = styled.div`
   background: #1e1e1e;
-  border-left: 1px solid #333;
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 4.5rem);
+  height: 100%;
   overflow: hidden;
 
   @media (max-width: 768px) {
     height: 500px;
+    border-top: 1px solid #333;
   }
 `
 
@@ -176,33 +195,51 @@ const Playground = () => {
         folderId={folderId}
       />
       <MainContainer isFullScreen={isFullScreen} isAIChatOpen={isAIChatOpen}>
-        <EditorContainer
-          title={title}
-          currentLanguage={currentLanguage}
-          setCurrentLanguage={setCurrentLanguage}
-          currentCode={currentCode}
-          setCurrentCode={setCurrentCode}
-          folderId={folderId}
-          playgroundId={playgroundId}
-          saveCode={saveCode}
-          runCode={runCode}
-          setIsFullScreen={setIsFullScreen}
-          isFullScreen={isFullScreen}
-        />
-        {!isFullScreen && (
-          <Consoles className="consoles-column">
-            <InputConsole
-              currentInput={currentInput}
-              setCurrentInput={setCurrentInput}
+        <StyledPanelGroup direction="horizontal">
+          <Panel minSize={30}>
+            <EditorContainer
+              title={title}
+              currentLanguage={currentLanguage}
+              setCurrentLanguage={setCurrentLanguage}
+              currentCode={currentCode}
+              setCurrentCode={setCurrentCode}
+              folderId={folderId}
+              playgroundId={playgroundId}
+              saveCode={saveCode}
+              runCode={runCode}
+              getFile={getFile}
+              setIsFullScreen={setIsFullScreen}
+              isFullScreen={isFullScreen}
             />
-            <OutputConsole currentOutput={currentOutput} />
-          </Consoles>
-        )}
-        {!isFullScreen && isAIChatOpen && (
-          <ChatSidePanel>
-            <AIChat isSidePanel={true} />
-          </ChatSidePanel>
-        )}
+          </Panel>
+
+          {!isFullScreen && (
+            <>
+              <ResizeHandle />
+              <Panel minSize={20}>
+                <Consoles className="consoles-column">
+                  <InputConsole
+                    currentInput={currentInput}
+                    setCurrentInput={setCurrentInput}
+                    getFile={getFile}
+                  />
+                  <OutputConsole currentOutput={currentOutput} />
+                </Consoles>
+              </Panel>
+            </>
+          )}
+
+          {!isFullScreen && isAIChatOpen && (
+            <>
+              <ResizeHandle />
+              <Panel minSize={20}>
+                <ChatSidePanel>
+                  <AIChat isSidePanel={true} />
+                </ChatSidePanel>
+              </Panel>
+            </>
+          )}
+        </StyledPanelGroup>
       </MainContainer>
       {isOpenModal.show && <Modal />}
     </>

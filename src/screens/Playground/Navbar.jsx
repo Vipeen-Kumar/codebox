@@ -3,7 +3,6 @@ import styled from "styled-components";
 import logo from "../../assets/logo.png";
 import aiIcon from "../../assets/aiicon.png";
 import { useNavigate } from "react-router-dom";
-import { ModalContext } from "../../context/ModalContext";
 import { PlaygroundContext } from "../../context/PlaygroundContext";
 
 const NavbarContainer = styled.div`
