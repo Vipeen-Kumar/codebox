@@ -9,7 +9,7 @@
 
 ## Table of Contents
 - [Project Overview](#project-overview)
-- [Installation & Setup](#installation--setup)
+- [Installation & Setup](#installation-setup)
   - [Prerequisites](#prerequisites)
   - [1. Clone the Repository](#1-clone-the-repository)
   - [2. Frontend Setup](#2-frontend-setup)
@@ -19,11 +19,11 @@
 - [API Documentation](#api-documentation)
 - [Testing Procedures](#testing-procedures)
 - [Deployment](#deployment)
-- [Run with Docker (Recommended for quick start)](#run-with-docker-recommended-for-quick-start)
+- **[Run with Docker (Recommended for quick start)](#run-with-docker-recommended-for-quick-start)**
 - [Changelog](#changelog)
 - [Contribution Guidelines](#contribution-guidelines)
 - [License](#license)
-- [Contact & Support](#contact--support)
+- [Contact & Support](#contact-support)
 
 ## 🚀 Project Overview
 
