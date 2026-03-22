@@ -230,4 +230,4 @@ Distributed under the MIT License. See `LICENSE` for more information.
 - **Email**: vipeenk023@gmail.com
 
 ---
-*Created with ❤️ by the Vipeen Kumar.*
+*Created with ❤️ by Vipeen Kumar.*
