@@ -7,6 +7,24 @@
 
 **codebox.tech** is a modern, high-performance web-based IDE designed for developers to write, run, and share code seamlessly. It features a VSCode-like interface with resizable panels, multi-language support, and an integrated AI assistant powered by Google's Gemini.
 
+## Table of Contents
+- [Project Overview](#project-overview)
+- [Installation & Setup](#installation--setup)
+  - [Prerequisites](#prerequisites)
+  - [1. Clone the Repository](#1-clone-the-repository)
+  - [2. Frontend Setup](#2-frontend-setup)
+  - [3. Backend Setup](#3-backend-setup)
+  - [Configuration Requirements](#configuration-requirements)
+- [Usage Examples](#usage-examples)
+- [API Documentation](#api-documentation)
+- [Testing Procedures](#testing-procedures)
+- [Deployment](#deployment)
+- [Run with Docker (Recommended for quick start)](#run-with-docker-recommended-for-quick-start)
+- [Changelog](#changelog)
+- [Contribution Guidelines](#contribution-guidelines)
+- [License](#license)
+- [Contact & Support](#contact--support)
+
 ## 🚀 Project Overview
 
 - **Dynamic Playground**: Create and organize code snippets in folders.
@@ -128,6 +146,55 @@ The `/build` folder can be hosted on platforms like Vercel, Netlify, or AWS S3.
 
 ### Backend
 Deploy the Node.js server to Heroku, Render, or a VPS. Ensure environment variables are configured in the production environment.
+
+---
+
+## 🐳 Run with Docker (Recommended for quick start)
+
+### Prerequisites
+- Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows/macOS) or Docker Engine (Linux).
+
+### 1. Set required environment variables
+Create a `.env` file next to `docker-compose.yml` (project root) or export them in your shell:
+```env
+GEMINI_API_KEY=your_gemini_api_key_here
+# Optional: override Piston API URL
+PISTON_API_URL=https://emkc.org/api/v2/piston
+```
+
+### 2. Build and run the stack
+```bash
+docker compose up --build
+```
+This starts:
+- Frontend on http://localhost:3000
+- Backend on http://localhost:5000
+
+Live-reload is enabled via bind mounts. Edit code locally and the containers will refresh.
+
+### 3. Stop the containers
+```bash
+docker compose down
+```
+
+### Optional handy commands
+- Rebuild only one service:
+  ```bash
+  docker compose build frontend
+  docker compose build backend
+  ```
+- View logs:
+  ```bash
+  docker compose logs -f frontend
+  docker compose logs -f backend
+  ```
+
+### How it works
+- [`docker-compose.yml`](file:///c:/Users/vipee/Desktop/study/project/codebox/docker-compose.yml) runs two services:
+  - `backend` (Node/Express) on port 5000 using [backend/Dockerfile](file:///c:/Users/vipee/Desktop/study/project/codebox/backend/Dockerfile).
+  - `frontend` (React) on port 3000 using the root [Dockerfile](file:///c:/Users/vipee/Desktop/study/project/codebox/Dockerfile).
+- Ports are mapped so the browser can access both services on localhost.
+- Environment variables are passed into the backend container.
 
 ---
 
