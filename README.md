@@ -19,7 +19,7 @@
 - [API Documentation](#api-documentation)
 - [Testing Procedures](#testing-procedures)
 - [Deployment](#deployment)
-- **[Run with Docker (Recommended for quick start)](#run-with-docker-recommended-for-quick-start)**
+- *[Run with Docker (Recommended for quick start)](#run-with-docker-recommended-for-quick-start)*
 - [Changelog](#changelog)
 - [Contribution Guidelines](#contribution-guidelines)
 - [License](#license)
@@ -73,7 +73,7 @@ Add the following to your `backend/.env` file:
 ```env
 PORT=5000
 GEMINI_API_KEY=your_gemini_api_key_here
-PISTON_API_URL=https://emkc.org/api/v2/piston
+PISTON_API_URL=your_piston_api_key_here
 ```
 
 ---
@@ -158,8 +158,7 @@ Deploy the Node.js server to Heroku, Render, or a VPS. Ensure environment variab
 Create a `.env` file next to `docker-compose.yml` (project root) or export them in your shell:
 ```env
 GEMINI_API_KEY=your_gemini_api_key_here
-# Optional: override Piston API URL
-PISTON_API_URL=https://emkc.org/api/v2/piston
+PISTON_API_URL=your_piston_api_key_here
 ```
 
 ### 2. Build and run the stack
