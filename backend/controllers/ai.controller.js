@@ -14,7 +14,7 @@ export const getAIResponse = async (req, res) => {
   }
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
 
     let chatHistory = history || [];
     

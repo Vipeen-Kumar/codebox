@@ -1,0 +1,964 @@
+================================================================================
+                        CODEBOX.TECH - PROJECT DOCUMENTATION
+                           Web-Based IDE Platform
+================================================================================
+
+PROJECT NAME: codebox.tech (Code Deck Coding IDE)
+VERSION: 0.1.0
+AUTHOR: Vipeen Kumar
+EMAIL: vipeenk023@gmail.com
+LICENSE: MIT
+
+================================================================================
+                            1. PROJECT OVERVIEW
+================================================================================
+
+Codebox.tech is a modern, high-performance web-based Integrated Development 
+Environment (IDE) designed for developers to write, run, and share code 
+seamlessly. The platform features a VSCode-like interface with resizable 
+panels, multi-language support, and an integrated AI assistant powered by 
+Google's Gemini AI.
+
+KEY FEATURES:
+- Dynamic Playground System: Create and organize code snippets in folders
+- Multi-Language Support: Run C++, Java, Python, and JavaScript code
+- AI Assistant Integration: Context-aware AI to help with debugging and code generation
+- Resizable Interface: Fully customizable workspace layout
+- Online Code Execution: Powered by the Piston API for secure execution
+- Code Validation: AI-generated code is automatically validated before implementation
+- Code History Management: Track changes with commit messages
+
+TARGET USERS:
+- Students learning programming
+- Developers prototyping code
+- Teachers explaining code concepts
+- Competitive programmers
+
+================================================================================
+                         2. TECHNOLOGY STACK
+================================================================================
+
+FRONTEND TECHNOLOGIES:
+========================
+
+Framework & Core:
+- React 18.2.0: Modern UI library for building interactive user interfaces
+- React DOM 18.2.0: Rendering React components to the DOM
+- React Router DOM 6.4.3: Client-side routing for navigation
+
+Code Editing & Syntax Highlighting:
+- @uiw/react-codemirror 4.15.1: CodeMirror React wrapper for code editing
+- @codemirror/lang-cpp 6.0.2: C++ syntax highlighting support
+- @codemirror/lang-java 6.0.1: Java syntax highlighting support
+- @codemirror/lang-javascript 6.1.1: JavaScript syntax highlighting support
+- @codemirror/lang-python 6.1.0: Python syntax highlighting support
+- @uiw/codemirror-theme-* (multiple themes): VSCode-like themes (Dracula, 
+  Bespin, Okaidia, GitHub, Duotone, Xcode)
+- react-syntax-highlighter 16.1.0: Syntax highlighting for AI responses
+- Prism (from react-syntax-highlighter): Code block highlighting
+
+UI Components & Styling:
+- styled-components 5.3.6: CSS-in-JS library for component styling
+- react-select 5.6.1: Dropdown component for language selection
+- react-icons 4.6.0: Icon library for UI elements
+- react-resizable-panels 4.4.2: Resizable panel layout management
+
+Content & Markdown:
+- react-markdown 10.1.0: Rendering markdown in AI responses
+- buffer 6.0.3: Buffer utilities for file handling
+
+State & Utilities:
+- uuid 9.0.0: Generating unique IDs for folders and playgrounds
+- axios 1.2.0: HTTP client for API requests
+
+Testing:
+- @testing-library/react 13.4.0: Testing utilities for React components
+- @testing-library/jest-dom 5.16.5: Jest matchers for DOM
+- @testing-library/user-event 13.5.0: User interaction simulation
+- react-scripts 5.0.1: Build configuration for React apps
+
+BACKEND TECHNOLOGIES:
+========================
+
+Runtime & Framework:
+- Node.js: JavaScript runtime
+- Express 5.2.1: Web framework for building REST APIs
+- ES Modules (type: "module" in package.json): Modern JavaScript module system
+
+External APIs & Services:
+- @google/generative-ai 0.24.1: Google Gemini AI API client
+  * Used for AI chat and code generation
+- Piston API: External service for secure code execution
+  * URL provided via environment variable
+
+Middleware & Utilities:
+- cors 2.8.5: Cross-Origin Resource Sharing middleware
+- dotenv 17.2.3: Environment variable management
+- axios 1.13.2: HTTP client for making requests to Piston API
+
+Development Tools:
+- nodemon 3.1.11: Auto-reload server during development
+
+CONTAINERIZATION:
+========================
+- Docker: Container platform for deployment
+- docker-compose: Orchestration for multi-container setup
+  * Frontend container: React app on port 3000
+  * Backend container: Express server on port 5000
+
+BUILD TOOLS:
+- npm/yarn: Package managers
+- react-scripts: Build, test, and development server configuration
+
+================================================================================
+                      3. ARCHITECTURE & SYSTEM DESIGN
+================================================================================
+
+ARCHITECTURE OVERVIEW:
+========================
+
+The application follows a Client-Server architecture with clear separation of 
+concerns:
+
+┌─────────────────────────────────────────────────────────────────────┐
+│                         CLIENT SIDE (React)                         │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  ┌──────────────────────────────────────────────────────────────┐  │
+│  │              Playground Screen                               │  │
+│  │  ┌────────────────┬──────────────┬──────────────────────┐   │  │
+│  │  │  Code Editor   │ Input Console│  AI Chat Assistant   │   │  │
+│  │  │  (CodeMirror)  │              │   (Side Panel)       │   │  │
+│  │  └────────────────┴──────────────┴──────────────────────┘   │  │
+│  │           │                                                  │  │
+│  │           └─ Resizable Panels (react-resizable-panels)      │  │
+│  └──────────────────────────────────────────────────────────────┘  │
+│                                                                     │
+│  ┌──────────────────────────────────────────────────────────────┐  │
+│  │  Context Management                                          │  │
+│  │  ├─ PlaygroundContext: Folder/Playground/Code State         │  │
+│  │  ├─ ModalContext: Modal dialogs management                  │  │
+│  │  └─ Local Storage: Persistent data storage                  │  │
+│  └──────────────────────────────────────────────────────────────┘  │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+                                ▼
+                         HTTP (Axios)
+                                ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                     SERVER SIDE (Express.js)                        │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  ┌────────────────────────────────────────────────────────────┐   │
+│  │ Express Server (localhost:5000)                            │   │
+│  │ ├─ CORS Enabled for frontend communication                │   │
+│  │ ├─ JSON Body Parser                                        │   │
+│  │ └─ Environment Variables (.env)                           │   │
+│  └────────────────────────────────────────────────────────────┘   │
+│                                                                     │
+│  ┌────────────────────────────────────────────────────────────┐   │
+│  │ Routes & Controllers                                       │   │
+│  │ ├─ POST /api/piston/execute → Code Execution              │   │
+│  │ └─ POST /api/ai/chat → AI Response Generation             │   │
+│  └────────────────────────────────────────────────────────────┘   │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+           ▼ (External APIs)           ▼ (External APIs)
+    ┌──────────────────┐         ┌──────────────────┐
+    │  Piston API      │         │ Google Gemini AI │
+    │ (Code Execution) │         │   (AI Chat)      │
+    └──────────────────┘         └──────────────────┘
+
+COMPONENT STRUCTURE:
+========================
+
+Frontend:
+└── src/
+    ├── App.js (Main router)
+    ├── screens/
+    │   ├── Home/ (Landing page with folder/playground management)
+    │   ├── Playground/ (Main coding interface)
+    │   │   ├── index.jsx (Main playground container)
+    │   │   ├── Navbar.jsx (Top navigation bar)
+    │   │   ├── EditorContainer.jsx (Code editor wrapper)
+    │   │   ├── CodeEditor.jsx (CodeMirror integration)
+    │   │   ├── InputConsole.jsx (Input/stdin panel)
+    │   │   └── OutputConsole.jsx (Output/stdout panel)
+    │   └── Error404/ (404 error page)
+    ├── components/
+    │   ├── Modal.jsx (Modal container)
+    │   └── ModalTypes/
+    │       ├── AIChat.jsx (AI assistant interface)
+    │       ├── NewPlayground.jsx (Create playground modal)
+    │       ├── NewFolder.jsx (Create folder modal)
+    │       ├── EditPlaygroundTitle.jsx (Edit playground name)
+    │       ├── EditFolder.jsx (Edit folder name)
+    │       ├── Loading.jsx (Loading indicator)
+    │       └── NewPlaygroundAndFolder.jsx (Create both)
+    ├── context/
+    │   ├── PlaygroundContext.jsx (Global state for playgrounds)
+    │   └── ModalContext.jsx (Global state for modals)
+    ├── style/
+    │   └── global.js (Global styles)
+    └── assets/ (Images and icons)
+
+Backend:
+└── backend/
+    ├── server.js (Express app initialization)
+    ├── routes/
+    │   ├── piston.routes.js (Code execution routes)
+    │   └── ai.routes.js (AI chat routes)
+    ├── controllers/
+    │   ├── piston.controller.js (Code execution logic)
+    │   └── ai.controller.js (AI chat logic)
+    ├── .env (Environment variables)
+    └── .env.example (Environment template)
+
+DATA FLOW ARCHITECTURE:
+========================
+
+Folder & Playground Management:
+1. User creates/edits folders/playgrounds in Home screen
+2. PlaygroundContext state is updated
+3. State is persisted to localStorage
+4. User navigates to playground with route params
+
+Code Editing & Execution:
+1. User writes code in CodeEditor
+2. Clicks "Save and Run"
+3. Frontend sends code to backend via HTTP
+4. Backend forwards to Piston API
+5. Piston compiles and executes code
+6. Output is displayed in OutputConsole
+
+AI Chat Flow:
+1. User opens AI Chat (modal or side panel)
+2. User enters prompt
+3. Frontend includes current code context if enabled
+4. Request sent to backend
+5. Backend sends to Google Gemini API
+6. AI response includes code blocks (if applicable)
+7. User can apply suggested changes
+8. Changes are validated before applying
+9. Chat history persisted to localStorage
+
+================================================================================
+                   4. PROJECT EXECUTION CYCLE & FLOW
+================================================================================
+
+INITIALIZATION PHASE:
+========================
+
+1. Application Startup
+   - User opens browser and navigates to localhost:3000 (or deployed URL)
+   - React app loads and initializes
+
+2. Context Setup
+   - PlaygroundProvider wraps the entire app
+   - PlaygroundContext is initialized with:
+     * Folders and Playgrounds from localStorage (or defaults)
+     * Chat histories from localStorage
+     * AI chat state
+   - ModalContext is initialized for modal management
+
+3. Home Screen Loads
+   - LeftComponent displays folder structure
+   - RightComponent shows available playgrounds
+   - LocalStorage data is displayed if available
+
+USER INTERACTION CYCLE:
+========================
+
+SCENARIO A: Create & Code
+Step 1: Create Folder
+- User clicks "New Folder"
+- NewFolder modal opens
+- User enters folder name
+- addFolder() is called → setFolders updates PlaygroundContext
+- Folder appears in sidebar
+- Data synced to localStorage
+
+Step 2: Create Playground
+- User clicks "New Playground" or creates folder+playground
+- NewPlayground modal opens
+- User enters:
+  * Playground name
+  * Language (C++, Java, Python, JavaScript)
+- addPlayground() is called → PlaygroundContext updated
+- Playground appears in folder
+- Default code template loaded based on language
+- Data synced to localStorage
+
+Step 3: Navigate to Playground
+- User clicks on playground card/item
+- Route changes to: /playground/:folderId/:playgroundId
+- Playground screen loads with:
+  * CodeEditor with language-specific syntax highlighting
+  * InputConsole for stdin
+  * OutputConsole for stdout/stderr
+  * AI Chat button in navbar
+
+Step 4: Code Editing
+- User writes/edits code in CodeEditor
+- currentCode state updates in real-time
+- User selects language if needed
+- currentLanguage state updates
+
+Step 5: Execute Code
+- User clicks "Save and Run"
+- saveCode() → Updates PlaygroundContext and localStorage
+- runCode() function executes:
+  
+   CLIENT SIDE:
+   ├─ Prepare payload:
+   │  ├─ Language: C++ / Java / Python / JavaScript
+   │  ├─ Version: e.g., "10.2.0" for C++
+   │  ├─ Source Code: Current code from editor
+   │  └─ Stdin: Input from InputConsole
+   │
+   └─ POST to http://localhost:5000/api/piston/execute
+   
+   BACKEND SIDE:
+   ├─ Receive request at piston.controller.js
+   ├─ Extract language, version, source_code, stdin
+   ├─ Forward to Piston API with payload
+   └─ Wait for response
+   
+   PISTON API SIDE:
+   ├─ Compile code (if needed)
+   ├─ Execute code with stdin
+   ├─ Capture stdout and stderr
+   └─ Return:
+      {
+        "compile": { "code": 0, "stdout": "", "stderr": "" },
+        "run": { "code": 0, "stdout": "output here", "stderr": "" }
+      }
+   
+   BACKEND PROCESSING:
+   ├─ Check compile stage response
+   ├─ Check run stage response
+   ├─ Determine status (Success/Compilation Error/Runtime Error)
+   └─ Send response to frontend
+   
+   FRONTEND HANDLING:
+   ├─ Receive response
+   ├─ Parse compile/run outputs
+   ├─ Display in OutputConsole
+   └─ Show loading spinner during execution
+
+Step 6: AI Assistance
+- User clicks AI assistant button
+- AIChat modal/side panel opens
+- System context included:
+  * Current playground title
+  * Current language
+  * Current code
+  * Permission to modify code or create playgrounds
+
+- User types prompt and hits Enter
+- handleSend() executes:
+  
+   CLIENT SIDE:
+   ├─ Add user message to messages array
+   ├─ Prepare payload:
+   │  ├─ Prompt: User's question
+   │  └─ History: Previous messages for context
+   │
+   └─ POST to http://localhost:5000/api/ai/chat
+   
+   BACKEND SIDE:
+   ├─ Receive request at ai.controller.js
+   ├─ Initialize Google Generative AI client
+   ├─ Start chat session with history
+   ├─ Send message to Gemini
+   └─ Return response text
+   
+   GEMINI API SIDE:
+   ├─ Process conversation history
+   ├─ Generate response based on context
+   ├─ Include code suggestions if applicable
+   └─ Return markdown-formatted response
+   
+   FRONTEND PROCESSING:
+   ├─ Receive AI response
+   ├─ Parse for special action blocks:
+   │  ├─ [FILE_UPDATE] → Code modification proposal
+   │  └─ [CREATE_PLAYGROUND] → New playground proposal
+   ├─ Display with interactive "Apply" buttons
+   └─ Update chat history in messages array
+
+Step 7: Apply AI Suggestions
+- User clicks "Apply Changes" on proposed code
+- validateAndApply() executes:
+  ├─ Test code against Piston API
+  ├─ If validation passes:
+  │  ├─ addCommit() → Store change in playground state
+  │  ├─ Update current code
+  │  └─ Show success message
+  └─ If validation fails:
+     ├─ Show error message with details
+     └─ User can ask AI for fixes
+
+Step 8: Save & Persist
+- All state changes trigger useEffect hooks
+- Updated state synced to localStorage:
+  * 'playgrounds-data': All folders and playgrounds
+  * 'chat-histories': All chat conversations
+
+SCENARIO B: Code Management
+- User can edit playground title
+- User can delete playgrounds
+- User can delete folders
+- User can clear chat history
+- All changes reflected immediately and persisted
+
+================================================================================
+                         5. API DOCUMENTATION
+================================================================================
+
+BACKEND SERVER:
+Address: http://localhost:5000
+Base URL for requests from frontend
+
+API ENDPOINT 1: CODE EXECUTION (Piston API)
+================================================
+
+Endpoint: POST /api/piston/execute
+Purpose: Execute user-written code in a sandboxed environment
+
+Request Headers:
+├─ Content-Type: application/json
+└─ Origin: http://localhost:3000 (CORS allowed)
+
+Request Body:
+{
+  "language": "string (c++|java|python|javascript)",
+  "version": "string (e.g., '10.2.0')",
+  "source_code": "string (full source code to execute)",
+  "stdin": "string (optional, user input for the program)"
+}
+
+Request Body Examples:
+
+Example 1 - Python:
+{
+  "language": "python",
+  "version": "3.10.0",
+  "source_code": "print('Hello, World!')\nx = input()\nprint('You entered:', x)",
+  "stdin": "test input"
+}
+
+Example 2 - C++:
+{
+  "language": "c++",
+  "version": "10.2.0",
+  "source_code": "#include <iostream>\nusing namespace std;\nint main() {\n  cout << \"Hello World!\";\n  return 0;\n}",
+  "stdin": ""
+}
+
+Example 3 - JavaScript:
+{
+  "language": "javascript",
+  "version": "18.15.0",
+  "source_code": "console.log('Hello World');",
+  "stdin": ""
+}
+
+Response Format:
+{
+  "compile": {
+    "code": "integer (exit code, 0 = success)",
+    "output": "string (compilation output)",
+    "stderr": "string (compilation errors)"
+  },
+  "run": {
+    "code": "integer (exit code, 0 = success)",
+    "stdout": "string (program output)",
+    "stderr": "string (runtime errors)"
+  }
+}
+
+Success Response (200):
+{
+  "compile": {
+    "code": 0,
+    "output": "",
+    "stderr": ""
+  },
+  "run": {
+    "code": 0,
+    "stdout": "Hello World!",
+    "stderr": ""
+  }
+}
+
+Compilation Error Response (200):
+{
+  "compile": {
+    "code": 1,
+    "output": "",
+    "stderr": "error: unknown type name 'cout'"
+  },
+  "run": {
+    "code": null,
+    "stdout": "",
+    "stderr": ""
+  }
+}
+
+Runtime Error Response (200):
+{
+  "compile": {
+    "code": 0,
+    "output": "",
+    "stderr": ""
+  },
+  "run": {
+    "code": 1,
+    "stdout": "",
+    "stderr": "Traceback (most recent call last):\n  ..."
+  }
+}
+
+Error Response (500):
+{
+  "error": "Execution failed",
+  "details": "Detailed error message from Piston or connection error"
+}
+
+WHY THIS API?
+- Piston API is an open-source code execution engine
+- Supports multiple languages safely in containers
+- No need to execute code locally (secure)
+- Scalable and reliable
+- Used by many online IDEs
+
+Supported Languages in Codebox:
+- C++ (version 10.2.0)
+- Java (version 15.0.2)
+- Python (version 3.10.0)
+- JavaScript (version 18.15.0)
+
+API ENDPOINT 2: AI CHAT (Google Gemini)
+================================================
+
+Endpoint: POST /api/ai/chat
+Purpose: Generate AI responses for coding questions and suggestions
+
+Request Headers:
+├─ Content-Type: application/json
+└─ Origin: http://localhost:3000 (CORS allowed)
+
+Request Body:
+{
+  "prompt": "string (user's question or message)",
+  "history": "array (previous messages for conversation context)"
+}
+
+Request Body Examples:
+
+Example 1 - Simple Question:
+{
+  "prompt": "How do I read user input in Python?",
+  "history": []
+}
+
+Example 2 - With Conversation History:
+{
+  "prompt": "Can you generate a Fibonacci sequence?",
+  "history": [
+    {
+      "role": "user",
+      "parts": [{ "text": "Generate a function in C++" }]
+    },
+    {
+      "role": "model",
+      "parts": [{ "text": "Here's a C++ function..." }]
+    }
+  ]
+}
+
+History Format (for Gemini API compatibility):
+[
+  {
+    "role": "user",
+    "parts": [{ "text": "message text" }]
+  },
+  {
+    "role": "model",
+    "parts": [{ "text": "response text" }]
+  }
+]
+
+Response Format:
+{
+  "text": "string (AI-generated response in markdown)"
+}
+
+Success Response (200):
+{
+  "text": "Sure! Here's how to read input in Python:\n\n```python\nname = input('Enter your name: ')\nprint(f'Hello, {name}!')\n```\n\nThe `input()` function..."
+}
+
+Response with Code Suggestion:
+{
+  "text": "Here's a Fibonacci generator:\n\n[FILE_UPDATE]\nCommit Message: Add Fibonacci function\n```cpp\n#include <iostream>\nusing namespace std;\n\nint fibonacci(int n) {\n  if (n <= 1) return n;\n  return fibonacci(n-1) + fibonacci(n-2);\n}\n\nint main() {\n  for (int i = 0; i < 10; i++)\n    cout << fibonacci(i) << \" \";\n  return 0;\n}\n```\n[/FILE_UPDATE]"
+}
+
+Response with Playground Creation:
+{
+  "text": "I'll create a new playground for you:\n\n[CREATE_PLAYGROUND]\nTitle: Fibonacci Sequence\nLanguage: javascript\n```javascript\nfunction fibonacci(n) {\n  if (n <= 1) return n;\n  return fibonacci(n-1) + fibonacci(n-2);\n}\n\nfor (let i = 0; i < 10; i++) {\n  console.log(fibonacci(i));\n}\n```\n[/CREATE_PLAYGROUND]"
+}
+
+Error Response (400):
+{
+  "error": "Prompt is required"
+}
+
+Error Response (500):
+{
+  "error": "Failed to generate response",
+  "details": "API key invalid or connection error"
+}
+
+WHY THIS API?
+- Google Gemini (formerly Bard) is a state-of-the-art AI model
+- Excellent for code generation and explanation
+- Fast and reliable
+- Good context understanding
+- Can handle conversation history for coherent dialogue
+- API: https://ai.google.dev/
+
+Model Used: gemini-flash-latest
+- Fast inference
+- Good for real-time interactions
+- Supports long context (includes code)
+- Max output tokens: 4000
+
+Environment Variables Required:
+- GEMINI_API_KEY: Your Google Gemini API key from https://ai.google.dev/
+
+SPECIAL ACTION BLOCKS IN AI RESPONSES:
+=====================================
+
+Frontend parses AI responses for special syntax:
+
+1. File Update Block:
+   [FILE_UPDATE]
+   Commit Message: Description of change
+   Code:
+   ```language
+   <updated code>
+   ```
+   [/FILE_UPDATE]
+   
+   Purpose: Propose code changes to current playground
+   Validation: Code is tested via Piston before applying
+
+2. Create Playground Block:
+   [CREATE_PLAYGROUND]
+   Title: New Playground Name
+   Language: cpp|java|python|javascript
+   Code:
+   ```language
+   <initial code>
+   ```
+   [/CREATE_PLAYGROUND]
+   
+   Purpose: Create new playground from AI suggestion
+   Validation: Language is verified; code template created
+
+API RATE LIMITS & QUOTAS:
+=========================
+
+Piston API:
+- Generally unlimited for small-scale usage
+- Response time: Usually <5 seconds per execution
+
+Google Gemini API:
+- Free tier: 60 requests per minute (as of latest update)
+- Paid tier: Higher limits available
+- Check: https://ai.google.dev/pricing for current limits
+
+================================================================================
+                         6. DEVELOPMENT SETUP
+================================================================================
+
+PREREQUISITES:
+- Node.js (v16+ recommended)
+- npm or yarn
+- Git
+- Gemini API Key (get from https://ai.google.dev/)
+- Optional: Docker for containerized deployment
+
+INSTALLATION STEPS:
+
+1. Clone Repository:
+   git clone https://github.com/your-username/codebox.git
+   cd codebox
+
+2. Frontend Setup:
+   npm install                    # Install dependencies
+   npm start                      # Start dev server on port 3000
+
+3. Backend Setup:
+   cd backend
+   npm install                    # Install dependencies
+   
+4. Environment Configuration:
+   Create backend/.env file:
+   
+   PORT=5000
+   GEMINI_API_KEY=your_api_key_here
+   PISTON_API_URL=https://piston-api.com/api/v1
+   
+   Note: Piston API URL example (find latest at https://github.com/engineer-man/piston)
+
+5. Start Backend:
+   npm run dev                    # Start with nodemon (auto-reload)
+   # OR
+   npm start                      # Start production server
+
+6. Docker Setup (Optional):
+   docker-compose up --build     # Build and run both frontend and backend
+
+ENVIRONMENT VARIABLES:
+======================
+
+Frontend (.env in root directory):
+REACT_APP_API_URL=http://localhost:5000
+
+Backend (.env in backend directory):
+PORT=5000
+GEMINI_API_KEY=your_gemini_api_key
+PISTON_API_URL=https://piston-api.com/api/v1
+
+BUILD FOR PRODUCTION:
+======================
+
+Frontend:
+npm run build
+# Output in /build directory, deploy to hosting (Vercel, Netlify, etc.)
+
+Backend:
+npm install --production  # Remove dev dependencies
+# Deploy Node.js server to hosting (Heroku, Render, Railway, etc.)
+
+================================================================================
+                         7. KEY TECHNOLOGIES EXPLAINED
+================================================================================
+
+REACT & STATE MANAGEMENT:
+- React Context API used instead of Redux for simplicity
+- PlaygroundContext: Central state for all folders, playgrounds, and chat history
+- Local Storage: Persistent client-side storage (persists across sessions)
+- useEffect hooks: Synchronize state with localStorage and side effects
+
+CODE EDITOR (CODEMIRROR):
+- CodeMirror 6: Industry-standard code editor
+- Language Extensions: Syntax highlighting for each supported language
+- Themes: Multiple VSCode-like themes available
+- Features: Line numbers, automatic indentation, code completion
+
+RESIZABLE PANELS:
+- react-resizable-panels: Allows user to resize editor, input, and output sections
+- Responsive: Stacks vertically on mobile devices
+- Draggable dividers: Smooth resize experience
+
+CODE EXECUTION FLOW:
+1. User writes code
+2. Sends to Piston API for compilation/execution
+3. Receives output
+4. Displays results in OutputConsole
+
+AI INTEGRATION:
+- Google Generative AI (Gemini): Conversational AI model
+- Chat history maintained in context for coherent responses
+- Special syntax parsing for code block suggestions
+- Automatic code validation before applying changes
+
+CONTAINERIZATION:
+- Docker: Isolates frontend and backend in separate containers
+- docker-compose: Orchestrates both services
+- Volumes: Maps local code for live-reload during development
+- Environment variables: Passed to containers via compose file
+
+================================================================================
+                       8. DATA PERSISTENCE
+================================================================================
+
+LOCAL STORAGE STRUCTURE:
+
+Key: 'playgrounds-data'
+Value: JSON object structure:
+{
+  "folder-uuid-1": {
+    "title": "Folder Name",
+    "playgrounds": {
+      "playground-uuid-1": {
+        "title": "Playground Name",
+        "language": "cpp|java|python|javascript",
+        "code": "full source code as string",
+        "commits": [
+          {
+            "id": "commit-uuid",
+            "message": "Commit message",
+            "timestamp": "ISO timestamp",
+            "code": "code at this commit"
+          }
+        ]
+      }
+    }
+  }
+}
+
+Key: 'chat-histories'
+Value: JSON object structure:
+{
+  "playground-uuid-1": [
+    {
+      "role": "user",
+      "text": "user message"
+    },
+    {
+      "role": "model",
+      "text": "AI response"
+    }
+  ]
+}
+
+Browser Storage Limit:
+- Typically 5-10 MB per origin
+- Exceeding limit may cause data loss
+- Can be cleared by user at any time
+
+CLOUD PERSISTENCE (Optional Enhancement):
+- Could integrate with Firebase, MongoDB, or PostgreSQL
+- Would require backend database setup
+- Enable multi-device synchronization
+
+================================================================================
+                         9. PROJECT STATISTICS
+================================================================================
+
+CODE METRICS:
+
+Frontend Files:
+- React Components: ~8 main components
+- Context Providers: 2 (PlaygroundContext, ModalContext)
+- Screen Components: 3 (Home, Playground, Error404)
+- Lines of Code: ~3000-4000
+
+Backend Files:
+- Route Files: 2 (piston.routes, ai.routes)
+- Controller Files: 2 (piston.controller, ai.controller)
+- Server Setup: 1 (server.js)
+- Lines of Code: ~300-400
+
+Total Lines of Code: ~3500-4500 (excluding node_modules)
+
+Supported Languages: 4 (C++, Java, Python, JavaScript)
+
+External API Integrations: 2 (Piston, Google Gemini)
+
+Package Dependencies:
+- Frontend: ~20 major dependencies
+- Backend: ~5 major dependencies
+
+================================================================================
+                      10. FUTURE ENHANCEMENTS
+================================================================================
+
+PLANNED FEATURES:
+
+1. User Authentication
+   - Login/signup system
+   - Persistent cloud storage
+   - Collaborative coding sessions
+
+2. Advanced AI Features
+   - Code review and optimization suggestions
+   - Real-time code completion
+   - Bug detection and fixes
+
+3. Language Support
+   - Add more programming languages
+   - Support for HTML/CSS/JavaScript web development
+   - Database query languages (SQL)
+
+4. Performance Optimization
+   - Code caching
+   - Lazy loading of components
+   - Worker threads for heavy operations
+
+5. Social Features
+   - Code sharing and collaboration
+   - Public snippets library
+   - Leaderboards for competitive programming
+
+6. IDE Enhancements
+   - Debugger integration
+   - Unit test framework integration
+   - Git integration
+
+7. Mobile Support
+   - Native mobile apps
+   - Responsive touch-friendly UI
+
+================================================================================
+                         11. TROUBLESHOOTING
+================================================================================
+
+COMMON ISSUES & SOLUTIONS:
+
+Issue 1: "Cannot POST /api/piston/execute"
+Cause: Backend server not running
+Solution: 
+  cd backend
+  npm run dev
+
+Issue 2: "CORS error" in browser console
+Cause: Backend CORS not properly configured
+Solution: Verify CORS middleware in server.js
+
+Issue 3: "GEMINI_API_KEY not found"
+Cause: Missing environment variable in .env
+Solution: Add GEMINI_API_KEY to backend/.env file
+
+Issue 4: Code execution timeout
+Cause: Infinite loop or long-running code
+Solution: Backend has execution limits; code will terminate
+
+Issue 5: Localhost:3000 not accessible
+Cause: Frontend dev server not running
+Solution:
+  npm install
+  npm start
+
+Issue 6: localStorage quota exceeded
+Cause: Too many playgrounds/large code files
+Solution: Clear some playgrounds or use cloud storage
+
+================================================================================
+                           12. CONCLUSION
+================================================================================
+
+Codebox.tech is a comprehensive web-based IDE that brings together modern
+web technologies, cloud APIs, and AI capabilities to provide a seamless
+coding experience. The architecture is clean, scalable, and easy to extend.
+
+The project demonstrates:
+- React best practices with Context API
+- RESTful API design
+- Integration with external services
+- Responsive UI/UX
+- Real-time code execution
+- AI-powered assistance
+
+For more information, visit: https://github.com/your-username/codebox
+Author: Vipeen Kumar
+Email: vipeenk023@gmail.com
+
+================================================================================
+                       END OF DOCUMENTATION
+================================================================================
