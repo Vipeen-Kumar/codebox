@@ -504,7 +504,7 @@ const AIChat = ({ isSidePanel }) => {
 
   useEffect(() => {
     updateChatHistory(playgroundId, messages);
-  }, [messages, playgroundId]);
+  }, [messages, playgroundId, updateChatHistory]);
 
   const handleSend = async () => {
     if (!input.trim() || loading) return;
