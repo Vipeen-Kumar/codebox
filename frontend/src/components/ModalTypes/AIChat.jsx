@@ -290,7 +290,7 @@ const AIChat = ({ isSidePanel }) => {
     setValidating(prev => ({ ...prev, [msgIndex]: 'validating' }));
     
     try {
-      const res = await axios.post('http://localhost:5000/api/piston/execute', {
+      const res = await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/piston/execute`, {
         language: languageMap[languageContext]?.language || languageContext,
         version: languageMap[languageContext]?.version || "*",
         source_code: newCode,
@@ -557,7 +557,7 @@ All changes are validated before implementation.`;
         apiHistory[apiHistory.length - 1].parts[0].text = `${systemContext}\n\nUser Question: ${input}`;
       }
 
-      const response = await axios.post('http://localhost:5000/api/ai/chat', {
+      const response = await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/ai/chat`, {
         prompt: input,
         history: apiHistory.slice(0, -1)
       });

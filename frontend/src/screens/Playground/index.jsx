@@ -129,7 +129,7 @@ const Playground = () => {
       openModal({ show: true, modalType: 6 })
 
       const res = await axios.post(
-        'http://localhost:5000/api/piston/execute',
+        `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/piston/execute`,
         {
           language: languageMap[currentLanguage].language,
           version: languageMap[currentLanguage].version,
