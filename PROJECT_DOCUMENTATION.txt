@@ -24,7 +24,7 @@ KEY FEATURES:
 - Multi-Language Support: Run C++, Java, Python, and JavaScript code
 - AI Assistant Integration: Context-aware AI to help with debugging and code generation
 - Resizable Interface: Fully customizable workspace layout
-- Online Code Execution: Powered by the Piston API for secure execution
+- Online Code Execution: Powered by local system compilers for secure execution
 - Code Validation: AI-generated code is automatically validated before implementation
 - Code History Management: Track changes with commit messages
 
@@ -88,13 +88,13 @@ Runtime & Framework:
 External APIs & Services:
 - @google/generative-ai 0.24.1: Google Gemini AI API client
   * Used for AI chat and code generation
-- Piston API: External service for secure code execution
-  * URL provided via environment variable
+- Local Code Execution: Node.js spawned processes with system compilers
+  * Python3, Node.js, G++, Java are installed in the Docker container
+  * Executes code with timeout and resource limits
 
 Middleware & Utilities:
 - cors 2.8.5: Cross-Origin Resource Sharing middleware
 - dotenv 17.2.3: Environment variable management
-- axios 1.13.2: HTTP client for making requests to Piston API
 
 Development Tools:
 - nodemon 3.1.11: Auto-reload server during development
@@ -165,8 +165,8 @@ concerns:
 └─────────────────────────────────────────────────────────────────────┘
            ▼ (External APIs)           ▼ (External APIs)
     ┌──────────────────┐         ┌──────────────────┐
-    │  Piston API      │         │ Google Gemini AI │
-    │ (Code Execution) │         │   (AI Chat)      │
+    │  Local Execution │         │ Google Gemini AI │
+    │  (System Compilers)         │   (AI Chat)      │
     └──────────────────┘         └──────────────────┘
 
 COMPONENT STRUCTURE:
@@ -311,8 +311,8 @@ Step 5: Execute Code
   
    CLIENT SIDE:
    ├─ Prepare payload:
-   │  ├─ Language: C++ / Java / Python / JavaScript
-   │  ├─ Version: e.g., "10.2.0" for C++
+   │  ├─ Language: C++, Java, Python, JavaScript
+   │  ├─ Version: Supported version (or "*")
    │  ├─ Source Code: Current code from editor
    │  └─ Stdin: Input from InputConsole
    │
@@ -321,22 +321,24 @@ Step 5: Execute Code
    BACKEND SIDE:
    ├─ Receive request at piston.controller.js
    ├─ Extract language, version, source_code, stdin
-   ├─ Forward to Piston API with payload
+   ├─ Call codeExecutor service
    └─ Wait for response
    
-   PISTON API SIDE:
-   ├─ Compile code (if needed)
-   ├─ Execute code with stdin
+   LOCAL EXECUTION SIDE:
+   ├─ Write code to temp file (/tmp/codebox-exec/)
+   ├─ Compile (for C++, Java)
+   ├─ Execute with Node.js spawn process
    ├─ Capture stdout and stderr
+   ├─ Apply 5-second timeout
    └─ Return:
       {
-        "compile": { "code": 0, "stdout": "", "stderr": "" },
+        "compile": { "code": 0, "output": "", "stderr": "" },
         "run": { "code": 0, "stdout": "output here", "stderr": "" }
       }
    
    BACKEND PROCESSING:
-   ├─ Check compile stage response
-   ├─ Check run stage response
+   ├─ Receive execution result
+   ├─ Check compile and run stage outputs
    ├─ Determine status (Success/Compilation Error/Runtime Error)
    └─ Send response to frontend
    
@@ -420,7 +422,7 @@ BACKEND SERVER:
 Address: http://localhost:5000
 Base URL for requests from frontend
 
-API ENDPOINT 1: CODE EXECUTION (Piston API)
+API ENDPOINT 1: CODE EXECUTION (Local Execution Service)
 ================================================
 
 Endpoint: POST /api/piston/execute
@@ -527,11 +529,11 @@ Error Response (500):
 }
 
 WHY THIS API?
-- Piston API is an open-source code execution engine
-- Supports multiple languages safely in containers
-- No need to execute code locally (secure)
-- Scalable and reliable
-- Used by many online IDEs
+- Local execution is secure and eliminates external API dependencies
+- Supports Python, JavaScript, C++, and Java
+- No rate limits or whitelist restrictions
+- Compilers are installed in the Docker container
+- 5-second timeout per execution prevents hung processes
 
 Supported Languages in Codebox:
 - C++ (version 10.2.0)
@@ -671,9 +673,11 @@ Frontend parses AI responses for special syntax:
 API RATE LIMITS & QUOTAS:
 =========================
 
-Piston API:
-- Generally unlimited for small-scale usage
-- Response time: Usually <5 seconds per execution
+Local Code Execution:
+- No external API limits
+- Response time: Usually <2-5 seconds per execution
+- 5-second timeout maximum per code execution to prevent hung processes
+- Compilers installed: Python3, Node.js, G++, Java 11
 
 Google Gemini API:
 - Free tier: 60 requests per minute (as of latest update)
@@ -710,9 +714,9 @@ INSTALLATION STEPS:
    
    PORT=5000
    GEMINI_API_KEY=your_api_key_here
-   PISTON_API_URL=https://piston-api.com/api/v1
    
-   Note: Piston API URL example (find latest at https://github.com/engineer-man/piston)
+   Note: Code execution uses system compilers (Python3, Node.js, G++, Java)
+   installed in the Docker container.
 
 5. Start Backend:
    npm run dev                    # Start with nodemon (auto-reload)
@@ -767,9 +771,10 @@ RESIZABLE PANELS:
 
 CODE EXECUTION FLOW:
 1. User writes code
-2. Sends to Piston API for compilation/execution
-3. Receives output
-4. Displays results in OutputConsole
+2. Sends to local execution service (spawned Node.js child processes)
+3. Code is compiled (if needed) and executed with timeout
+4. Receives output
+5. Displays results in OutputConsole
 
 AI INTEGRATION:
 - Google Generative AI (Gemini): Conversational AI model

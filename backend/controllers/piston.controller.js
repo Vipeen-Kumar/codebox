@@ -1,26 +1,31 @@
-import axios from "axios";
+import { executeCode } from "../services/codeExecutor.js";
 
 export const runCode = async (req, res) => {
   const { language, version, source_code, stdin } = req.body;
 
   try {
-    const response = await axios.post(
-      `${process.env.PISTON_API_URL}/execute`,
-      {
-        language,
-        version,
-        files: [
-          {
-            content: source_code,
-          },
-        ],
-        stdin: stdin || "",
-      }
-    );
+    if (!language || !source_code) {
+      return res.status(400).json({
+        error: "Missing required fields: language and source_code",
+      });
+    }
 
-    res.json(response.data);
+    const result = await executeCode(language, source_code, stdin || "");
+
+    if (result.error) {
+      return res.status(400).json(result);
+    }
+
+    res.json({
+      language: language,
+      compile: result.compile,
+      run: result.run,
+    });
   } catch (error) {
-    console.error("Piston execution failed:", error.response?.data || error.message);
-    res.status(500).json({ error: "Execution failed", details: error.response?.data || error.message });
+    console.error("Code execution failed:", error);
+    res.status(500).json({
+      error: "Execution failed",
+      details: error.message,
+    });
   }
 };

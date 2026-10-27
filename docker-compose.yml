@@ -11,10 +11,13 @@ services:
     environment:
       - PORT=5000
       - GEMINI_API_KEY=${GEMINI_API_KEY}
-      - PISTON_API_URL=${PISTON_API_URL:-https://emkc.org/api/v2/piston}
+    env_file:
+      - .env
     volumes:
       - ./backend:/app
       - /app/node_modules
+    networks:
+      - codebox_network
 
   frontend:
     build:
@@ -32,3 +35,9 @@ services:
       - ./:/app
       - /app/node_modules
     command: npm start
+    networks:
+      - codebox_network
+
+networks:
+  codebox_network:
+    driver: bridge
